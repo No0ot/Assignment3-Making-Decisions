@@ -8,6 +8,7 @@ struct Animation
 {
 	std::string name;
 	std::vector<Frame> frames;
+	int m_currentFrame;
 };
 
 #endif /* defined (__ANIMATION__) */

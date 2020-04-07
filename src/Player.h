@@ -23,15 +23,32 @@ public:
 	void setAnimationState(PlayerAnimationState new_state);
 	void setAnimation(const Animation& animation);
 
+	//Animation getAnimation() { return m_pAnimations; }
+
+	void moveForward();
+	void moveBack();
+	void turnRight();
+	void turnLeft();
+
+	void move();
+	void m_checkBounds();
+	
 private:
 	void m_buildAnimations();
 
 	SpriteSheet* m_pSpriteSheet;
 
-	int m_currentFrame;
+	
 
 	PlayerAnimationState m_currentAnimationState;
 	std::unordered_map<std::string, Animation> m_pAnimations;
+
+	float m_maxSpeed;
+	float m_turnRate;
+	void m_changeDirection();
+	float m_currentHeading;
+	glm::vec2 m_currentDirection;
+	glm::vec2 m_targetPosition;
 };
 
 #endif /* defined (__PLAYER__) */

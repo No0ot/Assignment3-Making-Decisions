@@ -84,7 +84,6 @@ void Ship::move()
 {
 	setPosition(getPosition() + getVelocity());
 	setVelocity(getVelocity() * 0.9f);
-
 }
 
 glm::vec2 Ship::getTargetPosition()

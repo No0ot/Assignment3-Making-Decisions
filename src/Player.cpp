@@ -1,7 +1,8 @@
 #include "Player.h"
 #include "Game.h"
+#include "Util.h"
 
-Player::Player(): m_currentFrame(0), m_currentAnimationState(PLAYER_IDLE_RIGHT)
+Player::Player(): m_currentAnimationState(PLAYER_IDLE)
 {
 	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/atlas.txt",
 		"../Assets/sprites/atlas.png", "spritesheet", TheGame::Instance()->getRenderer());
@@ -9,10 +10,10 @@ Player::Player(): m_currentFrame(0), m_currentAnimationState(PLAYER_IDLE_RIGHT)
 	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("spritesheet");
 	
 	// set frame width
-	setWidth(53);
+	setWidth(60);
 
 	// set frame height
-	setHeight(58);
+	setHeight(60);
 
 	setPosition(glm::vec2(400.0f, 300.0f));
 	setVelocity(glm::vec2(0.0f, 0.0f));
@@ -20,6 +21,10 @@ Player::Player(): m_currentFrame(0), m_currentAnimationState(PLAYER_IDLE_RIGHT)
 	setIsColliding(false);
 	setType(PLAYER);
 
+	m_maxSpeed = 10.0f;
+	m_currentHeading = 0.0f;
+	m_currentDirection = glm::vec2(1.0f, 0.0f);
+	m_turnRate = 20.0f;
 	m_buildAnimations();
 }
 
@@ -33,38 +38,117 @@ void Player::draw()
 
 	switch(m_currentAnimationState)
 	{
-	case PLAYER_IDLE_RIGHT:
+	case PLAYER_IDLE:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["idle"],
-			getPosition().x, getPosition().y, m_currentFrame, 0.12f,
-			TheGame::Instance()->getRenderer(), 0, 255, true);
+			getPosition().x, getPosition().y, m_pAnimations["idle"].m_currentFrame, 0.12f,
+			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
-	case PLAYER_IDLE_LEFT:
-		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["idle"],
-			getPosition().x, getPosition().y, m_currentFrame, 0.12f,
-			TheGame::Instance()->getRenderer(), 0, 255, true, SDL_FLIP_HORIZONTAL);
-		break;
-	case PLAYER_RUN_RIGHT:
+	case PLAYER_RUN:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["run"],
-			getPosition().x, getPosition().y, m_currentFrame, 0.25f,
-			TheGame::Instance()->getRenderer(), 0, 255, true);
+			getPosition().x, getPosition().y, m_pAnimations["run"].m_currentFrame, 0.25f,
+			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
-	case PLAYER_RUN_LEFT:
-		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["run"],
-			getPosition().x, getPosition().y, m_currentFrame, 0.25f,
-			TheGame::Instance()->getRenderer(), 0, 255, true, SDL_FLIP_HORIZONTAL);
+	case PLAYER_MELEE:
+		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["melee"],
+			getPosition().x, getPosition().y, m_pAnimations["melee"].m_currentFrame, 0.85f,
+			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
+	case PLAYER_SHOOT:
+		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["shoot"],
+			getPosition().x, getPosition().y, m_pAnimations["shoot"].m_currentFrame, 0.12f,
+			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 	}
-	
-	
-	
 }
 
 void Player::update()
 {
+	move();
+	m_checkBounds();
+	if (m_pAnimations["melee"].m_currentFrame == (int)m_pAnimations["melee"].frames.size() - 1)
+	{
+		setAnimationState(PLAYER_IDLE);
+		m_pAnimations["melee"].m_currentFrame = 0;
+	}
+	if (m_pAnimations["shoot"].m_currentFrame == (int)m_pAnimations["shoot"].frames.size() - 1)
+	{
+		setAnimationState(PLAYER_IDLE);
+		m_pAnimations["shoot"].m_currentFrame = 0;
+	}
 }
 
 void Player::clean()
 {
+}
+
+void Player::move()
+{
+	setPosition(getPosition() + getVelocity());
+	setVelocity(getVelocity() * 0.9f);
+}
+
+void Player::m_checkBounds()
+{
+
+	if (getPosition().x > Config::SCREEN_WIDTH)
+	{
+		setPosition(glm::vec2(0.0f, getPosition().y));
+	}
+
+	if (getPosition().x < 0)
+	{
+		setPosition(glm::vec2(800.0f, getPosition().y));
+	}
+
+	if (getPosition().y > Config::SCREEN_HEIGHT)
+	{
+		setPosition(glm::vec2(getPosition().x, 0.0f));
+	}
+
+	if (getPosition().y < 0)
+	{
+		setPosition(glm::vec2(getPosition().x, 600.0f));
+	}
+
+}
+
+void Player::moveForward()
+{
+	setVelocity(m_currentDirection * m_maxSpeed);
+}
+
+void Player::moveBack()
+{
+	setVelocity(m_currentDirection * -m_maxSpeed);
+}
+
+void Player::turnRight()
+{
+	m_currentHeading += m_turnRate;
+	if (m_currentHeading >= 360)
+	{
+		m_currentHeading -= 360.0f;
+	}
+	m_changeDirection();
+}
+
+void Player::turnLeft()
+{
+	m_currentHeading -= m_turnRate;
+	if (m_currentHeading < 0)
+	{
+		m_currentHeading += 360.0f;
+	}
+
+	m_changeDirection();
+}
+
+void Player::m_changeDirection()
+{
+	const auto x = cos(m_currentHeading * Util::Deg2Rad);
+	const auto y = sin(m_currentHeading * Util::Deg2Rad);
+	m_currentDirection = glm::vec2(x, y);
+
+	glm::vec2 size = TheTextureManager::Instance()->getTextureSize("ship");
 }
 
 void Player::setAnimationState(const PlayerAnimationState new_state)
@@ -82,20 +166,44 @@ void Player::m_buildAnimations()
 	Animation idleAnimation = Animation();
 
 	idleAnimation.name = "idle";
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("megaman-idle-0"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("megaman-idle-1"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("megaman-idle-2"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("megaman-idle-3"));
+	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-0"));
+	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-1"));
+	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-2"));
+	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-3"));
 
 	m_pAnimations["idle"] = idleAnimation;
 
 	Animation runAnimation = Animation();
 
 	runAnimation.name = "run";
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("megaman-run-0"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("megaman-run-1"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("megaman-run-2"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("megaman-run-3"));
-
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-run-0"));
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-run-1"));
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-run-2"));
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-run-3"));
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-run-4"));
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-run-5"));
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-run-6"));
 	m_pAnimations["run"] = runAnimation;
+
+	Animation meleeAnimation = Animation();
+
+	meleeAnimation.name = "melee";
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-0"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-1"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-2"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-3"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-4"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-5"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-6"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-7"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-8"));
+	m_pAnimations["melee"] = meleeAnimation;
+
+	Animation shootAnimation = Animation();
+
+	shootAnimation.name = "shoot";
+	shootAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-shoot-0"));
+	shootAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-shoot-1"));
+	shootAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-shoot-2"));
+	m_pAnimations["shoot"] = shootAnimation;
 }

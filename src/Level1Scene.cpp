@@ -20,6 +20,7 @@ void Level1Scene::update()
 {
 	updateDisplayList();
 	ExplosionManager::Instance()->update();
+	m_pPlayer->update();
 }
 
 void Level1Scene::clean()
@@ -75,25 +76,41 @@ void Level1Scene::handleEvents()
 				if(keyPressed == SDLK_w)
 				{
 					std::cout << "move forward" << std::endl;
-
+					m_pPlayer->setAnimationState(PLAYER_RUN);
+					m_pPlayer->moveForward();;
 				}
 
 				if (keyPressed == SDLK_a)
 				{
 					//std::cout << "move left" << std::endl;
-					m_pPlayer->setAnimationState(PLAYER_RUN_LEFT);
+				    m_pPlayer->setAnimationState(PLAYER_IDLE);
+					m_pPlayer->turnLeft();
 				}
 
 				if (keyPressed == SDLK_s)
 				{
 					std::cout << "move back" << std::endl;
-				
+					m_pPlayer->setAnimationState(PLAYER_RUN);
+					m_pPlayer->moveBack();
 				}
 
 				if (keyPressed == SDLK_d)
 				{
 					//std::cout << "move right" << std::endl;
-					m_pPlayer->setAnimationState(PLAYER_RUN_RIGHT);
+					m_pPlayer->setAnimationState(PLAYER_IDLE);
+					m_pPlayer->turnRight();
+				}
+
+				if (keyPressed == SDLK_f)
+				{
+					m_pPlayer->setAnimationState(PLAYER_MELEE);
+
+				}
+
+				if (keyPressed == SDLK_SPACE)
+				{
+					m_pPlayer->setAnimationState(PLAYER_SHOOT);
+
 				}
 			}
 			
@@ -101,15 +118,17 @@ void Level1Scene::handleEvents()
 		case SDL_KEYUP:
 			keyReleased = event.key.keysym.sym;
 
-			if (keyReleased == SDLK_a)
+			if (keyReleased == SDLK_w)
 			{
-				m_pPlayer->setAnimationState(PLAYER_IDLE_LEFT);
+				m_pPlayer->setAnimationState(PLAYER_IDLE);
 			}
 
-			if (keyReleased == SDLK_d)
+			if (keyReleased == SDLK_s)
 			{
-				m_pPlayer->setAnimationState(PLAYER_IDLE_RIGHT);
+				m_pPlayer->setAnimationState(PLAYER_IDLE);
 			}
+
+		
 			break;
 			
 		}
