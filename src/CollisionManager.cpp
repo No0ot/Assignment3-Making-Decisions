@@ -54,8 +54,8 @@ bool CollisionManager::squaredRadiusCheck(GameObject* object1, GameObject* objec
 bool CollisionManager::AABBCheck(GameObject* object1, GameObject* object2)
 {
 	// prepare relevant variables
-	glm::vec2 P1 = object1->getPosition();
-	glm::vec2 P2 = object2->getPosition();
+	glm::vec2 P1 = { object1->getPosition().x - object1->getWidth() * 0.5, object1->getPosition().y - object1->getHeight() * 0.5 };
+	glm::vec2 P2 = { object2->getPosition().x - object2->getWidth() * 0.5, object2->getPosition().y - object2->getHeight() * 0.5 };
 	float P1width = object1->getWidth();
 	float P1height = object1->getHeight();
 	float P2width = object2->getWidth();

@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "Game.h"
 #include "Util.h"
+#include <iostream>
 
 Player::Player(): m_currentAnimationState(PLAYER_IDLE)
 {
@@ -8,7 +9,7 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE)
 		"../Assets/sprites/atlas.png", "spritesheet", TheGame::Instance()->getRenderer());
 
 	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("spritesheet");
-	
+	m_buildAnimations();
 	// set frame width
 	setWidth(60);
 
@@ -25,7 +26,10 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE)
 	m_currentHeading = 0.0f;
 	m_currentDirection = glm::vec2(1.0f, 0.0f);
 	m_turnRate = 20.0f;
-	m_buildAnimations();
+
+	bulletspawnPos = glm::vec2(getPosition().x + 64, getPosition().y + 26);
+	directionvector = { bulletspawnPos.x - getPosition().x, bulletspawnPos.y - getPosition().y };
+	mag = Util::magnitude(directionvector);
 }
 
 Player::~Player()
@@ -50,7 +54,7 @@ void Player::draw()
 		break;
 	case PLAYER_MELEE:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["melee"],
-			getPosition().x, getPosition().y, m_pAnimations["melee"].m_currentFrame, 0.85f,
+			getPosition().x, getPosition().y, m_pAnimations["melee"].m_currentFrame, 1.5f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
 	case PLAYER_SHOOT:
@@ -58,6 +62,18 @@ void Player::draw()
 			getPosition().x, getPosition().y, m_pAnimations["shoot"].m_currentFrame, 0.12f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 	}
+
+	for (int i = 0; i < m_pBulletvec.size(); i++)
+	{
+		if(m_pBulletvec[i] != nullptr)
+		m_pBulletvec[i]->draw();
+	}
+	glm::vec2 directionvector = bulletspawnPos - getPosition();
+	float mag = Util::magnitude(directionvector);
+	glm::vec2 dv2 = Util::normalize(directionvector);
+	Util::DrawLine(getPosition(), getPosition() +  dv2 *  mag);
+	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * mag);
+	Util::DrawCircle(getPosition(), getHeight() * 0.7);
 }
 
 void Player::update()
@@ -74,6 +90,19 @@ void Player::update()
 		setAnimationState(PLAYER_IDLE);
 		m_pAnimations["shoot"].m_currentFrame = 0;
 	}
+	for (int i = 0; i < (int)m_pBulletvec.size(); i++)
+	{
+		m_pBulletvec[i]->update();
+		if (m_pBulletvec[i]->m_checkBounds())
+		{
+			delete m_pBulletvec[i];
+			m_pBulletvec[i] = nullptr;
+			m_pBulletvec.erase(m_pBulletvec.begin() + i);
+		}
+	}
+
+	updatebulletspawn();
+	//std::cout << bulletspawnPos.x <<" " << bulletspawnPos.y  << std::endl;
 }
 
 void Player::clean()
@@ -83,7 +112,8 @@ void Player::clean()
 void Player::move()
 {
 	setPosition(getPosition() + getVelocity());
-	setVelocity(getVelocity() * 0.9f);
+	setVelocity(getVelocity() * 0.95f);
+	bulletspawnPos += getVelocity();
 }
 
 void Player::m_checkBounds()
@@ -111,6 +141,11 @@ void Player::m_checkBounds()
 
 }
 
+std::vector<Bullet*>& Player::getBullets()
+{
+	return m_pBulletvec;
+}
+
 void Player::moveForward()
 {
 	setVelocity(m_currentDirection * m_maxSpeed);
@@ -128,6 +163,7 @@ void Player::turnRight()
 	{
 		m_currentHeading -= 360.0f;
 	}
+
 	m_changeDirection();
 }
 
@@ -140,6 +176,36 @@ void Player::turnLeft()
 	}
 
 	m_changeDirection();
+
+}
+
+void Player::turnaround()
+{
+	m_currentHeading -= 180.0f;
+		if (m_currentHeading < 0)
+		{
+			m_currentHeading += 360.0f;
+		}
+	m_changeDirection();
+}
+
+void Player::updatebulletspawn()
+{
+	
+	glm::vec2 tempos2 = Util::rotateVectorRight(m_currentDirection,24.785);
+	tempos2 = Util::normalize(tempos2);
+	bulletspawnPos = { getPosition().x + (tempos2.x * mag), getPosition().y + (tempos2.y * mag) };
+
+}
+
+void Player::melee()
+{
+}
+
+void Player::shoot()
+{
+	m_pBulletvec.push_back(new Bullet(bulletspawnPos, getHeading()));
+	//m_pBulletvec.back()->spawn();
 }
 
 void Player::m_changeDirection()
@@ -170,6 +236,7 @@ void Player::m_buildAnimations()
 	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-1"));
 	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-2"));
 	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-3"));
+	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-4"));
 
 	m_pAnimations["idle"] = idleAnimation;
 
@@ -197,6 +264,10 @@ void Player::m_buildAnimations()
 	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-6"));
 	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-7"));
 	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-8"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-9"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-10"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-11"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-12"));
 	m_pAnimations["melee"] = meleeAnimation;
 
 	Animation shootAnimation = Animation();

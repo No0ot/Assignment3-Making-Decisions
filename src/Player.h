@@ -6,6 +6,7 @@
 #include "PlayerAnimationState.h"
 #include "Animation.h"
 #include "SpriteSheet.h"
+#include "Bullet.h"
 #include <unordered_map>
 
 class Player : public DisplayObject
@@ -23,16 +24,22 @@ public:
 	void setAnimationState(PlayerAnimationState new_state);
 	void setAnimation(const Animation& animation);
 
-	//Animation getAnimation() { return m_pAnimations; }
+	//getters
+	float getHeading() { return m_currentHeading; }
 
 	void moveForward();
 	void moveBack();
 	void turnRight();
 	void turnLeft();
+	void turnaround();
+
+	void updatebulletspawn();
+	void melee();
+	void shoot();
 
 	void move();
 	void m_checkBounds();
-	
+	std::vector<Bullet*>& getBullets();
 private:
 	void m_buildAnimations();
 
@@ -49,6 +56,12 @@ private:
 	float m_currentHeading;
 	glm::vec2 m_currentDirection;
 	glm::vec2 m_targetPosition;
+	glm::vec2 bulletspawnPos;
+	float spawnangle;
+	glm::vec2 directionvector;
+	float mag;
+
+	std::vector<Bullet*> m_pBulletvec;
 };
 
 #endif /* defined (__PLAYER__) */

@@ -8,7 +8,7 @@ enum GameObjectType {
 	PLANET,
 	MINE,
 	TILE,
-	CAT,
+	BULLET,
 	PLAYER,
 	PLANE,
 	EXPLOSION,

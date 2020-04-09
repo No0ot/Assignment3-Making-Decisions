@@ -7,7 +7,7 @@
 
 #include "PlaneSprite.h"
 #include "Player.h"
-
+#include "Obstacle.h"
 
 
 class Level1Scene : public Scene
@@ -27,6 +27,7 @@ private:
 
 	PlaneSprite* m_pPlaneSprite;
 	Player* m_pPlayer;
+	std::vector<Obstacle*> m_pObstacleVec;
 
 };
 
