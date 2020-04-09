@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __Mine__
-#define __Mine__
+#ifndef __Obstacle__
+#define __Obstacle__
 
 
 #include "TextureManager.h"
@@ -9,11 +9,11 @@
 #include "Scene.h"
 #include "PathFindingDisplayObject.h"
 
-class Mine final : public PathFindingDisplayObject
+class Obstacle final : public PathFindingDisplayObject
 {
 public:
-     Mine();
-	~Mine();
+     Obstacle();
+	~Obstacle();
 
 	// Inherited via GameObject
 	virtual void draw() override;

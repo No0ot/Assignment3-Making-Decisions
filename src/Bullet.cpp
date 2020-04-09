@@ -10,8 +10,8 @@ Bullet::Bullet(glm::vec2 position, float heading)
 	// framesize is 512 x 256
 	
 	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("spritesheet");
-	setWidth(60);
-	setHeight(13);
+	setWidth(16);
+	setHeight(16);
 
 	setPosition(position);
 	m_currentHeading = heading;
@@ -36,6 +36,9 @@ void Bullet::draw()
 	TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["shoot"],
 		getPosition().x, getPosition().y, m_pAnimations["shoot"].m_currentFrame, 0.12f,
 		TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+
+	glm::vec2 temp = { getPosition().x - getWidth() * 0.5, getPosition().y - getHeight() * 0.5 };
+	Util::DrawRect(temp, getWidth(), getHeight());
 }
 
 void Bullet::m_changeDirection()

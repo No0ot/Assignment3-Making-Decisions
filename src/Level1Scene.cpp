@@ -21,6 +21,27 @@ void Level1Scene::update()
 	updateDisplayList();
 	ExplosionManager::Instance()->update();
 	m_pPlayer->update();
+
+	for (int i = 0; i < (int)m_pObstacleVec.size(); i++)
+	{
+		if (CollisionManager::circleAABBCheck(m_pPlayer,m_pObstacleVec[i] ))
+		{
+			m_pPlayer->setVelocity(m_pPlayer->getVelocity() * glm::vec2{ -0.8 ,-0.8 });
+		}
+		for (int j = 0; j < (int)m_pPlayer->getBullets().size(); j++)
+		{
+
+			Bullet* bullet = m_pPlayer->getBullets()[j];
+			if (CollisionManager::AABBCheck(m_pObstacleVec[i], m_pPlayer->getBullets()[j] ))
+			{
+				delete bullet;
+				m_pPlayer->getBullets()[j] = nullptr;
+				m_pPlayer->getBullets().erase(m_pPlayer->getBullets().begin() + 1 * j);
+				break;
+			}
+		}
+				m_pPlayer->getBullets().shrink_to_fit();
+	}
 }
 
 void Level1Scene::clean()
@@ -113,6 +134,12 @@ void Level1Scene::handleEvents()
 					m_pPlayer->shoot();
 
 				}
+
+				if (keyPressed == SDLK_c)
+				{
+					m_pPlayer->turnaround();
+
+				}
 			}
 			
 			break;
@@ -143,4 +170,11 @@ void Level1Scene::start()
 
 	m_pPlayer = new Player();
 	addChild(m_pPlayer);
+
+
+	for (int i = 0; i < 15; i++)
+	{
+		m_pObstacleVec.push_back(new Obstacle());
+		addChild(m_pObstacleVec.back());
+	}
 }

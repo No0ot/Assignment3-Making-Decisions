@@ -9,7 +9,7 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE)
 		"../Assets/sprites/atlas.png", "spritesheet", TheGame::Instance()->getRenderer());
 
 	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("spritesheet");
-	
+	m_buildAnimations();
 	// set frame width
 	setWidth(60);
 
@@ -26,8 +26,10 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE)
 	m_currentHeading = 0.0f;
 	m_currentDirection = glm::vec2(1.0f, 0.0f);
 	m_turnRate = 20.0f;
-	m_buildAnimations();
+
 	bulletspawnPos = glm::vec2(getPosition().x + 64, getPosition().y + 26);
+	directionvector = { bulletspawnPos.x - getPosition().x, bulletspawnPos.y - getPosition().y };
+	mag = Util::magnitude(directionvector);
 }
 
 Player::~Player()
@@ -52,7 +54,7 @@ void Player::draw()
 		break;
 	case PLAYER_MELEE:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["melee"],
-			getPosition().x, getPosition().y, m_pAnimations["melee"].m_currentFrame, 0.85f,
+			getPosition().x, getPosition().y, m_pAnimations["melee"].m_currentFrame, 1.5f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
 	case PLAYER_SHOOT:
@@ -63,12 +65,15 @@ void Player::draw()
 
 	for (int i = 0; i < m_pBulletvec.size(); i++)
 	{
+		if(m_pBulletvec[i] != nullptr)
 		m_pBulletvec[i]->draw();
 	}
-
-	//SDL_SetRenderDrawColor(TheGame::Instance()->getRenderer(), 255, 0, 255, 255);
-	SDL_Rect temp = { getPosition().x, getPosition().y,getWidth(), getHeight() };
-	SDL_RenderDrawRect(TheGame::Instance()->getRenderer(), &temp);
+	glm::vec2 directionvector = bulletspawnPos - getPosition();
+	float mag = Util::magnitude(directionvector);
+	glm::vec2 dv2 = Util::normalize(directionvector);
+	Util::DrawLine(getPosition(), getPosition() +  dv2 *  mag);
+	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * mag);
+	Util::DrawCircle(getPosition(), getHeight() * 0.7);
 }
 
 void Player::update()
@@ -96,7 +101,7 @@ void Player::update()
 		}
 	}
 
-
+	updatebulletspawn();
 	//std::cout << bulletspawnPos.x <<" " << bulletspawnPos.y  << std::endl;
 }
 
@@ -107,7 +112,7 @@ void Player::clean()
 void Player::move()
 {
 	setPosition(getPosition() + getVelocity());
-	setVelocity(getVelocity() * 0.9f);
+	setVelocity(getVelocity() * 0.95f);
 	bulletspawnPos += getVelocity();
 }
 
@@ -136,6 +141,11 @@ void Player::m_checkBounds()
 
 }
 
+std::vector<Bullet*>& Player::getBullets()
+{
+	return m_pBulletvec;
+}
+
 void Player::moveForward()
 {
 	setVelocity(m_currentDirection * m_maxSpeed);
@@ -155,17 +165,6 @@ void Player::turnRight()
 	}
 
 	m_changeDirection();
-
-	glm::vec2 tempos = bulletspawnPos - getPosition();
-	spawnangle = Util::signedAngle(m_currentDirection, tempos);
-	glm::vec2 tempos2 = Util::rotateVectorRight(tempos, m_currentHeading);
-	glm::vec2 tempos3 = tempos2 - tempos;
-	bulletspawnPos = getPosition() + tempos3;
-
-	std::cout << m_currentHeading << std::endl;
-	std::cout << tempos.x << " " << tempos.x << std::endl;
-	std::cout << tempos2.x << " " << tempos2.y << std::endl;
-	std::cout << bulletspawnPos.x << " " << bulletspawnPos.y << std::endl;
 }
 
 void Player::turnLeft()
@@ -178,17 +177,25 @@ void Player::turnLeft()
 
 	m_changeDirection();
 
+}
 
-	glm::vec2 tempos = bulletspawnPos - getPosition();
-	spawnangle = Util::signedAngle(m_currentDirection, tempos);
-	glm::vec2 tempos2 = Util::rotateVectorLeft(tempos, spawnangle);
-	glm::vec2 tempos3 = tempos2 - tempos;
-	bulletspawnPos = getPosition() + tempos3;
+void Player::turnaround()
+{
+	m_currentHeading -= 180.0f;
+		if (m_currentHeading < 0)
+		{
+			m_currentHeading += 360.0f;
+		}
+	m_changeDirection();
+}
 
-	std::cout << m_currentHeading << std::endl;
-	std::cout << tempos.x << " " << tempos.x << std::endl;
-	std::cout << tempos2.x << " " << tempos2.y << std::endl;
-	std::cout << bulletspawnPos.x << " " << bulletspawnPos.y << std::endl;
+void Player::updatebulletspawn()
+{
+	
+	glm::vec2 tempos2 = Util::rotateVectorRight(m_currentDirection,24.785);
+	tempos2 = Util::normalize(tempos2);
+	bulletspawnPos = { getPosition().x + (tempos2.x * mag), getPosition().y + (tempos2.y * mag) };
+
 }
 
 void Player::melee()

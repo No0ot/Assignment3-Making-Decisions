@@ -31,13 +31,15 @@ public:
 	void moveBack();
 	void turnRight();
 	void turnLeft();
+	void turnaround();
 
+	void updatebulletspawn();
 	void melee();
 	void shoot();
 
 	void move();
 	void m_checkBounds();
-	
+	std::vector<Bullet*>& getBullets();
 private:
 	void m_buildAnimations();
 
@@ -56,6 +58,8 @@ private:
 	glm::vec2 m_targetPosition;
 	glm::vec2 bulletspawnPos;
 	float spawnangle;
+	glm::vec2 directionvector;
+	float mag;
 
 	std::vector<Bullet*> m_pBulletvec;
 };

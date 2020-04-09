@@ -282,15 +282,15 @@ glm::vec2 Util::rotateVectorLeft(glm::vec2 pos, float angle)
 	float x = (pos.x * cos(angle)) - (pos.y * sin(angle));
 	float y = (pos.x * sin(angle)) + (pos.y * cos(angle));
 	
-	tempvec = glm::vec2{ x, y };
+	tempvec = glm::vec2{ x , y };
 	return tempvec;
 }
 
 glm::vec2 Util::rotateVectorRight(glm::vec2 pos, float angle)
 {
 	glm::vec2 tempvec;
-	float x = (pos.x * cos(angle)) - (pos.y * sin(angle));
-	float y = ((pos.x * sin(angle))* -1) + (pos.y * cos(angle));
+	float x = (pos.x * cos(angle)) + (pos.y * sin(angle));
+	float y = (pos.x * sin(angle) * -1) + (pos.y * cos(angle));
 
 	tempvec = glm::vec2{ x, y };
 	return tempvec;
