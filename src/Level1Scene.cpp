@@ -110,6 +110,7 @@ void Level1Scene::handleEvents()
 				if (keyPressed == SDLK_SPACE)
 				{
 					m_pPlayer->setAnimationState(PLAYER_SHOOT);
+					m_pPlayer->shoot();
 
 				}
 			}

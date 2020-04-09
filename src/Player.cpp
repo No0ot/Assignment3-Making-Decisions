@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "Game.h"
 #include "Util.h"
+#include <iostream>
 
 Player::Player(): m_currentAnimationState(PLAYER_IDLE)
 {
@@ -26,6 +27,7 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE)
 	m_currentDirection = glm::vec2(1.0f, 0.0f);
 	m_turnRate = 20.0f;
 	m_buildAnimations();
+	bulletspawnPos = glm::vec2(getPosition().x + 64, getPosition().y + 26);
 }
 
 Player::~Player()
@@ -58,6 +60,15 @@ void Player::draw()
 			getPosition().x, getPosition().y, m_pAnimations["shoot"].m_currentFrame, 0.12f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 	}
+
+	for (int i = 0; i < m_pBulletvec.size(); i++)
+	{
+		m_pBulletvec[i]->draw();
+	}
+
+	//SDL_SetRenderDrawColor(TheGame::Instance()->getRenderer(), 255, 0, 255, 255);
+	SDL_Rect temp = { getPosition().x, getPosition().y,getWidth(), getHeight() };
+	SDL_RenderDrawRect(TheGame::Instance()->getRenderer(), &temp);
 }
 
 void Player::update()
@@ -74,6 +85,19 @@ void Player::update()
 		setAnimationState(PLAYER_IDLE);
 		m_pAnimations["shoot"].m_currentFrame = 0;
 	}
+	for (int i = 0; i < (int)m_pBulletvec.size(); i++)
+	{
+		m_pBulletvec[i]->update();
+		if (m_pBulletvec[i]->m_checkBounds())
+		{
+			delete m_pBulletvec[i];
+			m_pBulletvec[i] = nullptr;
+			m_pBulletvec.erase(m_pBulletvec.begin() + i);
+		}
+	}
+
+
+	//std::cout << bulletspawnPos.x <<" " << bulletspawnPos.y  << std::endl;
 }
 
 void Player::clean()
@@ -84,6 +108,7 @@ void Player::move()
 {
 	setPosition(getPosition() + getVelocity());
 	setVelocity(getVelocity() * 0.9f);
+	bulletspawnPos += getVelocity();
 }
 
 void Player::m_checkBounds()
@@ -128,7 +153,19 @@ void Player::turnRight()
 	{
 		m_currentHeading -= 360.0f;
 	}
+
 	m_changeDirection();
+
+	glm::vec2 tempos = bulletspawnPos - getPosition();
+	spawnangle = Util::signedAngle(m_currentDirection, tempos);
+	glm::vec2 tempos2 = Util::rotateVectorRight(tempos, m_currentHeading);
+	glm::vec2 tempos3 = tempos2 - tempos;
+	bulletspawnPos = getPosition() + tempos3;
+
+	std::cout << m_currentHeading << std::endl;
+	std::cout << tempos.x << " " << tempos.x << std::endl;
+	std::cout << tempos2.x << " " << tempos2.y << std::endl;
+	std::cout << bulletspawnPos.x << " " << bulletspawnPos.y << std::endl;
 }
 
 void Player::turnLeft()
@@ -140,6 +177,28 @@ void Player::turnLeft()
 	}
 
 	m_changeDirection();
+
+
+	glm::vec2 tempos = bulletspawnPos - getPosition();
+	spawnangle = Util::signedAngle(m_currentDirection, tempos);
+	glm::vec2 tempos2 = Util::rotateVectorLeft(tempos, spawnangle);
+	glm::vec2 tempos3 = tempos2 - tempos;
+	bulletspawnPos = getPosition() + tempos3;
+
+	std::cout << m_currentHeading << std::endl;
+	std::cout << tempos.x << " " << tempos.x << std::endl;
+	std::cout << tempos2.x << " " << tempos2.y << std::endl;
+	std::cout << bulletspawnPos.x << " " << bulletspawnPos.y << std::endl;
+}
+
+void Player::melee()
+{
+}
+
+void Player::shoot()
+{
+	m_pBulletvec.push_back(new Bullet(bulletspawnPos, getHeading()));
+	//m_pBulletvec.back()->spawn();
 }
 
 void Player::m_changeDirection()
@@ -170,6 +229,7 @@ void Player::m_buildAnimations()
 	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-1"));
 	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-2"));
 	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-3"));
+	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-idle-4"));
 
 	m_pAnimations["idle"] = idleAnimation;
 
@@ -197,6 +257,10 @@ void Player::m_buildAnimations()
 	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-6"));
 	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-7"));
 	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-8"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-9"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-10"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-11"));
+	meleeAnimation.frames.push_back(m_pSpriteSheet->getFrame("survivor-melee-12"));
 	m_pAnimations["melee"] = meleeAnimation;
 
 	Animation shootAnimation = Animation();
