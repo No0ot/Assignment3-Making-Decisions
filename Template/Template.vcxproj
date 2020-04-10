@@ -175,7 +175,7 @@
     <ClCompile Include="..\src\Obstacle.cpp" />
     <ClCompile Include="..\src\PathFindingDisplayObject.cpp" />
     <ClCompile Include="..\src\PlaneSprite.cpp" />
-    <ClCompile Include="..\src\Planet.cpp" />
+    <ClCompile Include="..\src\Enemy.cpp" />
     <ClCompile Include="..\src\Player.cpp" />
     <ClCompile Include="..\src\Scene.cpp" />
     <ClCompile Include="..\src\ship.cpp" />
@@ -215,9 +215,9 @@
     <ClInclude Include="..\src\Obstacle.h" />
     <ClInclude Include="..\src\PathFindingDisplayObject.h" />
     <ClInclude Include="..\src\PlaneSprite.h" />
-    <ClInclude Include="..\src\Planet.h" />
+    <ClInclude Include="..\src\Enemy.h" />
     <ClInclude Include="..\src\Player.h" />
-    <ClInclude Include="..\src\PlayerAnimationState.h" />
+    <ClInclude Include="..\src\AnimationState.h" />
     <ClInclude Include="..\src\Scene.h" />
     <ClInclude Include="..\src\SceneState.h" />
     <ClInclude Include="..\src\ShapeType.h" />

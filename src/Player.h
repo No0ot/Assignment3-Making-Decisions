@@ -3,7 +3,7 @@
 #define __PLAYER__
 
 #include "DisplayObject.h"
-#include "PlayerAnimationState.h"
+#include "AnimationState.h"
 #include "Animation.h"
 #include "SpriteSheet.h"
 #include "Bullet.h"
@@ -44,9 +44,6 @@ private:
 	void m_buildAnimations();
 
 	SpriteSheet* m_pSpriteSheet;
-
-	
-
 	PlayerAnimationState m_currentAnimationState;
 	std::unordered_map<std::string, Animation> m_pAnimations;
 

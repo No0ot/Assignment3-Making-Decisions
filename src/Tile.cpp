@@ -8,12 +8,12 @@
 Tile::Tile(glm::vec2 world_position, glm::vec2 grid_position):
 	m_gridPosition(grid_position)
 {
-	TheTextureManager::Instance()->load("../Assets/textures/tile.png",
+	TheTextureManager::Instance()->load("../Assets/sprites/backgroundsm.png",
 		"tile", TheGame::Instance()->getRenderer());
 
 	auto size = TheTextureManager::Instance()->getTextureSize("tile");
-	setWidth(size.x);
-	setHeight(size.y);
+	setWidth(40);
+	setHeight(40);
 	setPosition(world_position);
 
 	std::ostringstream tempLabel;
@@ -48,8 +48,8 @@ void Tile::draw()
 	TheTextureManager::Instance()->draw("tile", xComponent, yComponent,
 		TheGame::Instance()->getRenderer(), 0, 255, true);
 
-	m_pClosedOpenLabel->draw();
-	m_pValueLabel->draw();
+//	m_pClosedOpenLabel->draw();
+	//m_pValueLabel->draw();
 }
 
 void Tile::update()

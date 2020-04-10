@@ -8,11 +8,9 @@ Obstacle::Obstacle()
 		"obstacle", TheGame::Instance()->getRenderer());
 
 	const auto size = TheTextureManager::Instance()->getTextureSize("obstacle");
-	setWidth(64);
-	setHeight(32);
-	const float x = (rand() % 800 - getWidth());
-	const float y = (rand() % 600 - getHeight());
-	setPosition(glm::vec2(x,y));
+	setWidth(40);
+	setHeight(40);
+	setPosition(glm::vec2(0.0f,0.0f));
 	setVelocity(glm::vec2(0.0f, 0.0f));
 	setType(OBSTACLE);
 }
