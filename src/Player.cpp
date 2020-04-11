@@ -3,7 +3,7 @@
 #include "Util.h"
 #include <iostream>
 
-Player::Player(): m_currentAnimationState(PLAYER_IDLE)
+Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_iCurrentHealth(100), m_HealthBar(*this, m_iTotalHealth, m_iCurrentHealth)
 {
 	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/atlas.txt",
 		"../Assets/sprites/atlas.png", "spritesheet", TheGame::Instance()->getRenderer());
@@ -74,6 +74,8 @@ void Player::draw()
 	Util::DrawLine(getPosition(), getPosition() +  dv2 *  mag);
 	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * mag);
 	Util::DrawCircle(getPosition(), getHeight() * 0.7);
+
+	m_HealthBar.draw();
 }
 
 void Player::update()
@@ -102,6 +104,7 @@ void Player::update()
 	}
 
 	updatebulletspawn();
+	m_HealthBar.update();
 	//std::cout << bulletspawnPos.x <<" " << bulletspawnPos.y  << std::endl;
 }
 

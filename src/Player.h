@@ -8,6 +8,7 @@
 #include "SpriteSheet.h"
 #include "Bullet.h"
 #include <unordered_map>
+#include "HealthBar.h"
 
 class Player : public DisplayObject
 {
@@ -57,6 +58,10 @@ private:
 	float spawnangle;
 	glm::vec2 directionvector;
 	float mag;
+
+	int m_iTotalHealth;
+	int m_iCurrentHealth;
+	HealthBar m_HealthBar;
 
 	std::vector<Bullet*> m_pBulletvec;
 };
