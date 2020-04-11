@@ -36,6 +36,9 @@ private:
 	std::vector<Obstacle*> m_pObstacleVec;
 	std::vector<Enemy*> m_pEnemyVec;
 
+	int m_iTotalPts;
+	int m_iCurrentPts;
+	UIBar m_PtsBar;
 };
 
 #endif /* defined (__LEVEL1_SCENE__) */

@@ -3,7 +3,7 @@
 #include "ExplosionManager.h"
 #include "Util.h"
 
-Level1Scene::Level1Scene()
+Level1Scene::Level1Scene() : m_iCurrentPts(0), m_iTotalPts(100), m_PtsBar(10, 10, m_iCurrentPts, m_iTotalPts, 2.0f, { 192, 192, 255, 192 })
 {
 	Level1Scene::start();
 }
@@ -15,6 +15,7 @@ void Level1Scene::draw()
 {
 	drawDisplayList();
 	ExplosionManager::Instance()->draw();
+	m_PtsBar.draw();
 }
 
 void Level1Scene::update()
@@ -43,6 +44,7 @@ void Level1Scene::update()
 		}
 				m_pPlayer->getBullets().shrink_to_fit();
 	}
+	m_PtsBar.update();
 }
 
 void Level1Scene::clean()
