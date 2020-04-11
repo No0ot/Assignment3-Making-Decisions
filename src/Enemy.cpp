@@ -1,7 +1,7 @@
 #include "Enemy.h"
 #include "Game.h"
 
-Enemy::Enemy() : m_currentAnimationState(WOLF_IDLE)
+Enemy::Enemy() : m_currentAnimationState(WOLF_IDLE), m_iTotalHealth(50), m_iCurrentHealth(50), m_HealthBar(*this, m_iCurrentHealth, m_iTotalHealth, 0.5f, { 255, 0, 0, 192 } )
 {
 	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/wolf.txt",
 		"../Assets/sprites/wolf.png", "wolfspritesheet", TheGame::Instance()->getRenderer());
@@ -9,10 +9,10 @@ Enemy::Enemy() : m_currentAnimationState(WOLF_IDLE)
 	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("wolfspritesheet");
 	m_buildAnimations();
 	// set frame width
-	setWidth(60);
+	setWidth(40);
 
 	// set frame height
-	setHeight(60);
+	setHeight(40);
 	setPosition(glm::vec2(0.0f, 0.0f));
 	setVelocity(glm::vec2(0.0f, 0.0f));
 	setIsColliding(false);
@@ -56,12 +56,16 @@ void Enemy::draw()
 			getPosition().x, getPosition().y, m_pAnimations["bite"].m_currentFrame, 0.12f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 	}
+
+	m_HealthBar.draw();
 }
 
 void Enemy::update()
 {
 	m_checkBounds();
 	move();
+
+	m_HealthBar.update();
 }
 
 void Enemy::clean()

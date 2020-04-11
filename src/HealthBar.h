@@ -15,7 +15,7 @@ private:
 	SDL_Colour m_cFrameColour;
 	SDL_Colour m_cFillColour;
 public:
-	HealthBar(GameObject& object, int& current, int& total, float barscale = 1.0f, SDL_Colour fillcolour = { 128, 255, 96, 255 }, SDL_Colour framecolour = { 128, 128, 128, 128 });
+	HealthBar(GameObject& object, int& current, int& total, float barscale = 1.0f, SDL_Colour fillcolour = { 128, 255, 96, 192 }, SDL_Colour framecolour = { 128, 128, 128, 128 });
 	void update();
 	void draw();
 };

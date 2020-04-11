@@ -8,6 +8,7 @@
 #include "AnimationState.h"
 #include "Util.h"
 #include <unordered_map>
+#include "HealthBar.h"
 
 class Enemy final : public PathFindingDisplayObject
 {
@@ -36,7 +37,9 @@ private:
 	glm::vec2 m_currentDirection;
 	glm::vec2 m_targetPosition;
 
-
+	int m_iTotalHealth;
+	int m_iCurrentHealth;
+	HealthBar m_HealthBar;
 };
 
 
