@@ -24,26 +24,7 @@ void Level1Scene::update()
 	ExplosionManager::Instance()->update();
 	m_pPlayer->update();
 
-	for (int i = 0; i < (int)m_pObstacleVec.size(); i++)
-	{
-		if (CollisionManager::circleAABBCheck(m_pPlayer,m_pObstacleVec[i] ))
-		{
-			m_pPlayer->setVelocity(m_pPlayer->getVelocity() * glm::vec2{ -0.8 ,-0.8 });
-		}
-		for (int j = 0; j < (int)m_pPlayer->getBullets().size(); j++)
-		{
-
-			Bullet* bullet = m_pPlayer->getBullets()[j];
-			if (CollisionManager::AABBCheck(m_pObstacleVec[i], m_pPlayer->getBullets()[j] ))
-			{
-				delete bullet;
-				m_pPlayer->getBullets()[j] = nullptr;
-				m_pPlayer->getBullets().erase(m_pPlayer->getBullets().begin() + 1 * j);
-				break;
-			}
-		}
-				m_pPlayer->getBullets().shrink_to_fit();
-	}
+	m_checkCollisions();
 	m_PtsBar.update();
 }
 
@@ -274,10 +255,56 @@ void Level1Scene::m_spawnObstacles()
 
 void Level1Scene::m_spawnEnemy()
 {
-
 	for (Enemy* enemy : m_pEnemyVec)
 	{
 		m_spawnObject(enemy);
 	}
+}
 
+void Level1Scene::m_checkCollisions()
+{
+	for (unsigned int i = 0; i < m_pObstacleVec.size(); i++)
+	{
+		// Handle player collisions
+		if (CollisionManager::circleAABBCheck(m_pPlayer, m_pObstacleVec[i]))
+		{
+			m_pPlayer->setVelocity(m_pPlayer->getVelocity() * glm::vec2{ -0.8 ,-0.8 });
+		}
+
+		// Handle enemy collisions
+		for (unsigned int j = 0; j < m_pEnemyVec.size(); j++)
+		{
+			if (CollisionManager::circleAABBCheck(m_pEnemyVec[j], m_pObstacleVec[i]))
+			{
+				m_pEnemyVec[j]->setVelocity(glm::vec2{ 0, 0 });
+			}
+
+			for (unsigned int feeler = 0; feeler < 3; feeler++)
+			{
+				if (CollisionManager::lineAABBCheck(m_pEnemyVec[j]->getPosition(), m_pEnemyVec[j]->getFeelerEndPosition(feeler), m_pObstacleVec[i]))
+				{
+					m_pEnemyVec[j]->setFeeler(feeler, true);
+				}
+				else
+				{
+					m_pEnemyVec[j]->setFeeler(feeler, false);
+				}
+			}
+		}
+
+		// Handle bullet collisions
+		for (unsigned int j = 0; j < m_pPlayer->getBullets().size(); j++)
+		{
+			// Bullet collision with obstacles
+			Bullet* bullet = m_pPlayer->getBullets()[j];
+			if (CollisionManager::AABBCheck(m_pObstacleVec[i], m_pPlayer->getBullets()[j]))
+			{
+				delete bullet;
+				m_pPlayer->getBullets()[j] = nullptr;
+				m_pPlayer->getBullets().erase(m_pPlayer->getBullets().begin() + 1 * j);
+				break;
+			}
+		}
+		m_pPlayer->getBullets().shrink_to_fit();
+	}
 }

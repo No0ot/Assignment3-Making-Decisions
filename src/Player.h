@@ -42,6 +42,7 @@ public:
 	void m_checkBounds();
 	std::vector<Bullet*>& getBullets();
 private:
+	float m_fScaleFactor;
 	void m_buildAnimations();
 
 	SpriteSheet* m_pSpriteSheet;

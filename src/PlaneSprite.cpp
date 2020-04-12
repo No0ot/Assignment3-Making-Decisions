@@ -33,7 +33,7 @@ void PlaneSprite::draw()
 {
 	TheTextureManager::Instance()->playAnimation(
 		"spritesheet", m_pAnimations["plane"],
-		getPosition().x, getPosition().y, m_currentFrame, 0.5f, 
+		getPosition().x, getPosition().y, 1.0f, m_currentFrame, 0.5f, 
 		TheGame::Instance()->getRenderer(), 0, 255, true);
 }
 

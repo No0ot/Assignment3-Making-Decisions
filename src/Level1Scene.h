@@ -28,6 +28,7 @@ public:
 	int m_spawnObject(PathFindingDisplayObject*);
 	void m_spawnObstacles();
 	void m_spawnEnemy();
+	void m_checkCollisions();
 private:
 	glm::vec2 m_mousePosition;
 	std::vector<Tile*> m_pGrid;

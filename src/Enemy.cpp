@@ -1,7 +1,7 @@
 #include "Enemy.h"
 #include "Game.h"
 
-Enemy::Enemy() : m_currentAnimationState(WOLF_IDLE), m_iTotalHealth(50), m_iCurrentHealth(50), m_HealthBar(*this, m_iCurrentHealth, m_iTotalHealth, 0.5f, { 255, 0, 0, 192 } )
+Enemy::Enemy() : m_currentAnimationState(WOLF_IDLE), m_iTotalHealth(50), m_iCurrentHealth(50), m_HealthBar(*this, m_iCurrentHealth, m_iTotalHealth, 0.5f, { 255, 0, 0, 192 } ), m_fScaleFactor(0.5f)
 {
 	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/wolf.txt",
 		"../Assets/sprites/wolf.png", "wolfspritesheet", TheGame::Instance()->getRenderer());
@@ -20,10 +20,25 @@ Enemy::Enemy() : m_currentAnimationState(WOLF_IDLE), m_iTotalHealth(50), m_iCurr
 
 	m_currentHeading = rand()% 360 + 1;
 	m_changeDirection();
-	setVelocity(m_currentDirection * 10.0f);
-	m_maxSpeed = 10.0f;
+	//setVelocity(m_currentDirection * 10.0f);
+	m_maxSpeed = 5.0f;
 	m_currentDirection = glm::vec2(1.0f, 0.0f);
-	m_turnRate = 20.0f;
+	m_turnRate = 5.0f;
+
+
+	//setAcceleration(glm::vec2(0.1f, 0.0f));
+	setState(SteeringState::SEEK);
+	setTargetPosition({ 0, 0 });
+	m_angleToTarget = 0.0f;
+	m_feelerAngle = 30.0f; 
+	m_feelerLength = 150.0f;
+	m_distanceToTarget = 0.0f;
+	m_arrivalRadius = 175.0f;
+	m_arrivalTarget = 45.0f;
+	m_turnFrame = 0;
+	m_turnFrameMax = 3;
+	m_avoidEndFrame = 0;
+	m_avoidEndFrameMax = 21;
 }
 
 Enemy::~Enemy()
@@ -38,22 +53,22 @@ void Enemy::draw()
 	{
 	case WOLF_IDLE:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["idle"],
-			getPosition().x, getPosition().y, m_pAnimations["idle"].m_currentFrame, 0.5f,
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.5f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
 	case WOLF_WALK:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["walk"],
-			getPosition().x, getPosition().y, m_pAnimations["run"].m_currentFrame, 0.25f,
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["run"].m_currentFrame, 0.25f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
 	case WOLF_RUN:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["run"],
-			getPosition().x, getPosition().y, m_pAnimations["run"].m_currentFrame, 0.5f,
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["run"].m_currentFrame, 0.5f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
 	case WOLF_BITE:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["bite"],
-			getPosition().x, getPosition().y, m_pAnimations["bite"].m_currentFrame, 0.12f,
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["bite"].m_currentFrame, 0.12f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 	}
 
@@ -62,6 +77,10 @@ void Enemy::draw()
 
 void Enemy::update()
 {
+	if (!m_checkFeelers())
+	{
+		m_checkSteeringState();
+	}
 	m_checkBounds();
 	move();
 
@@ -98,6 +117,36 @@ void Enemy::m_checkBounds()
 
 }
 
+glm::vec2 Enemy::getFeelerEndPosition(unsigned int feeler_number)
+{
+	// Centre feeler 
+	glm::vec2 end = this->getPosition() + (m_currentDirection * m_feelerLength);
+	
+	// Left Feeler
+	if (feeler_number == 0)
+	{
+		end = Util::rotateVectorLeft(end, m_feelerAngle);
+	}
+
+	// Right feeler
+	else if (feeler_number == 2)
+	{
+		end = Util::rotateVectorRight(end, m_feelerAngle);
+	}
+
+	return end;
+}
+
+void Enemy::setFeeler(unsigned int feeler_number, bool value)
+{
+	m_feelerCol[feeler_number] = value;
+}
+
+void Enemy::setTargetPosition(glm::vec2 target_position)
+{
+	m_targetPosition = target_position;
+}
+
 void Enemy::move()
 {
 	setPosition(getPosition() + getVelocity());
@@ -105,12 +154,49 @@ void Enemy::move()
 	
 }
 
+void Enemy::accelerate()
+{
+	setAcceleration(glm::vec2{m_currentDirection.x * m_maxSpeed * 0.1, m_currentDirection.y * m_maxSpeed * 0.1});
+	this->setVelocity(this->getVelocity() + this->getAcceleration());
+	if (Util::magnitude(getVelocity()) > m_maxSpeed)
+	{
+		setVelocity(Util::normalize(getVelocity()) * m_maxSpeed);
+	}
+} 
+
+void Enemy::decelerate()
+{
+	this->setVelocity(this->getVelocity() - this->getAcceleration());
+	if (Util::magnitude(getVelocity()) < 0.1)
+	{
+		setVelocity(glm::vec2{0, 0});
+	}
+}
+
+void Enemy::m_turn(float direction, bool to_target)
+{
+	if (to_target)
+	{
+		float angleDifference = abs(m_turnRate - m_angleToTarget);
+		m_currentHeading += ((angleDifference < m_turnRate) ? m_angleToTarget * 0.2 : m_turnRate) * direction;
+	}
+	else
+	{
+		m_currentHeading += m_turnRate * direction;
+	}
+	m_changeDirection();
+}
+
 void Enemy::m_changeDirection()
 {
 	const auto x = cos( (90 + m_currentHeading) * Util::Deg2Rad);
 	const auto y = sin( (90 + m_currentHeading) * Util::Deg2Rad);
 	m_currentDirection = glm::vec2(x, y);
+}
 
+glm::vec2 Enemy::getTargetPosition()
+{
+	return m_targetPosition;
 }
 
 void Enemy::m_buildAnimations()
@@ -154,4 +240,162 @@ void Enemy::m_buildAnimations()
 	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-4"));
 	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-5"));
 	m_pAnimations["bite"] = biteAnimation;
+}
+
+void Enemy::m_checkSteeringState()
+{
+	switch (getState())
+	{
+	case SteeringState::IDLE:
+		setVelocity({ 0, 0 });
+		break;
+	case SteeringState::SEEK:
+		accelerate();
+		m_seek();
+		m_reorient();
+		m_checkArrival();
+		break;
+	case SteeringState::ARRIVE:
+		m_seek();
+		m_reorient();
+		m_arrive();
+		m_checkArrival();
+		break;
+	case SteeringState::AVOID:
+		m_seek();
+		m_avoid();
+		m_arrive();
+		m_checkArrival();
+		break;
+	case SteeringState::FLEE:
+		accelerate();
+		m_flee();
+		m_reorient();
+		break;
+	}
+}
+
+void Enemy::m_seek()
+{
+	glm::vec2 steeringVelocity;
+	steeringVelocity = getTargetPosition() - getPosition();
+	m_targetDirection = Util::normalize(steeringVelocity);
+}
+
+void Enemy::m_flee()
+{
+	glm::vec2 steeringVelocity;
+	glm::vec2 nearCorner = { getPosition().x < getTargetPosition().x ? getWidth() * 0.75 : 800 - getWidth() * 0.75, getPosition().y < getTargetPosition().y ? getWidth() * 0.75 : 600 - getWidth() * 0.75 };
+	float tx = (abs(nearCorner.x - getPosition().x) / abs(nearCorner.x - getTargetPosition().x));
+	float ty = (abs(nearCorner.y - getPosition().y) / abs(nearCorner.y - getTargetPosition().y));
+	steeringVelocity.x = Util::lerp(getPosition().x - getTargetPosition().x, nearCorner.x - getPosition().x, tx < ty ? 1 - tx : 1 - ty);
+	steeringVelocity.y = Util::lerp(getPosition().y - getTargetPosition().y, nearCorner.y - getPosition().y, tx < ty ? 1 - tx : 1 - ty);
+	m_targetDirection = Util::normalize(steeringVelocity);
+}
+
+void Enemy::m_checkArrival()
+{
+	m_distanceToTarget = Util::distance(getPosition(), getTargetPosition());
+	if (m_distanceToTarget <= m_arrivalTarget)
+	{
+		this->setState(IDLE);
+	}
+	else if (m_distanceToTarget <= m_arrivalRadius)
+	{
+		this->setState(ARRIVE);
+	}
+}
+
+void Enemy::m_checkCollisions()
+{
+}
+
+void Enemy::m_arrive()
+{
+	if (m_distanceToTarget <= m_arrivalRadius)
+	{
+		decelerate();
+	}
+	else
+	{
+		accelerate();
+	}
+}
+
+void Enemy::m_avoid()
+{
+	if (m_avoidDirection < 0)
+	{
+		m_turn(1.0f);
+	}
+	else if (m_avoidDirection > 0)
+	{
+		m_turn(-1.0f);
+	}
+}
+
+void Enemy::m_reorient()
+{
+	if (m_feelerCol[0] == false && m_feelerCol[1] == false && m_feelerCol[2] == false)
+	{
+		m_angleToTarget = Util::signedAngle(m_currentDirection, m_targetDirection);
+		if (m_angleToTarget > 0.0f)
+			m_turn(1.0f);
+		else if (m_angleToTarget < 0.0f)
+			m_turn(-1.0f);
+	}
+}
+
+bool Enemy::m_checkFeelers()
+{
+	// Check any feeler
+	if (m_feelerCol[0] == true || m_feelerCol[1] == true || m_feelerCol[2] == true)
+	{
+		std::cout << "feeler is true!" << std::endl;
+		//setDistanceToTarget(sqrt(CollisionManager::circleAABBsquaredDistance(getPosition(), getHeight(), Game::Instance()->getObstacle()->getPosition(), Game::Instance()->getObstacle()->getWidth() * 0.5, Game::Instance()->getObstacle()->getHeight())));
+		//setSteeringState(AVOID);
+		m_avoidEndFrame = 0;
+
+		if ((m_feelerCol[0] == true  && m_feelerCol[1] == false && m_feelerCol[2] == false) ||
+			(m_feelerCol[0] == false && m_feelerCol[1] == true  && m_feelerCol[2] == false) ||
+			(m_feelerCol[0] == true  && m_feelerCol[1] == true  && m_feelerCol[2] == false) ||
+			(m_feelerCol[0] == true  && m_feelerCol[1] == false && m_feelerCol[2] == true ) ||
+			(m_feelerCol[0] == true  && m_feelerCol[1] == true  && m_feelerCol[2] == true ))
+		{
+			m_turn(-1.0, false);
+			std::cout << "turning left!" << std::endl;
+			return true;
+			//m_avoidDirection = -1.0;
+		}
+		else if ((m_feelerCol[0] == false && m_feelerCol[1] == false && m_feelerCol[2] == true) ||
+				( m_feelerCol[0] == false && m_feelerCol[1] == true  && m_feelerCol[2] == true))
+		{
+			std::cout << "turning right!" << std::endl;
+			m_turn(1.0, false);
+			return true;
+			//m_avoidDirection = 1.0;
+		}
+	}
+	/*else
+	{
+		++m_avoidEndFrame;
+		if (m_avoidEndFrame >= m_avoidEndFrameMax)
+		{
+			switch (getState())
+			{
+			case IDLE:
+				setState(IDLE);
+				break;
+			case SEEK:
+			case ARRIVE:
+			case AVOID:
+				setState(SEEK);
+				break;
+			case FLEE:
+				setState(FLEE);
+				break;
+			}
+		}
+	}*/
+	return false;
 }
