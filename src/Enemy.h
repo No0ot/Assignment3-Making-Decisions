@@ -73,7 +73,6 @@ private:
 	float m_avoidDirection;
 	int m_avoidEndFrame;
 	int m_avoidEndFrameMax;
-	bool m_checkFeelers();
 
 	// target info
 	float m_angleToTarget;

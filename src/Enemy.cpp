@@ -77,10 +77,7 @@ void Enemy::draw()
 
 void Enemy::update()
 {
-	if (!m_checkFeelers())
-	{
-		m_checkSteeringState();
-	}
+	m_checkSteeringState();
 	m_checkBounds();
 	move();
 
@@ -166,11 +163,10 @@ void Enemy::accelerate()
 
 void Enemy::decelerate()
 {
-	this->setVelocity(this->getVelocity() - this->getAcceleration());
-	if (Util::magnitude(getVelocity()) < 0.1)
-	{
-		setVelocity(glm::vec2{0, 0});
-	}
+	glm::vec2 newVel = this->getVelocity();
+	newVel.x *= 0.9;
+	newVel.y *= 0.9;
+	this->setVelocity(newVel);
 }
 
 void Enemy::m_turn(float direction, bool to_target)
@@ -344,58 +340,22 @@ void Enemy::m_reorient()
 		else if (m_angleToTarget < 0.0f)
 			m_turn(-1.0f);
 	}
-}
-
-bool Enemy::m_checkFeelers()
-{
-	// Check any feeler
-	if (m_feelerCol[0] == true || m_feelerCol[1] == true || m_feelerCol[2] == true)
+	else if (m_feelerCol[0] == true || m_feelerCol[1] == true || m_feelerCol[2] == true)
 	{
-		std::cout << "feeler is true!" << std::endl;
-		//setDistanceToTarget(sqrt(CollisionManager::circleAABBsquaredDistance(getPosition(), getHeight(), Game::Instance()->getObstacle()->getPosition(), Game::Instance()->getObstacle()->getWidth() * 0.5, Game::Instance()->getObstacle()->getHeight())));
-		//setSteeringState(AVOID);
 		m_avoidEndFrame = 0;
 
-		if ((m_feelerCol[0] == true  && m_feelerCol[1] == false && m_feelerCol[2] == false) ||
-			(m_feelerCol[0] == false && m_feelerCol[1] == true  && m_feelerCol[2] == false) ||
-			(m_feelerCol[0] == true  && m_feelerCol[1] == true  && m_feelerCol[2] == false) ||
-			(m_feelerCol[0] == true  && m_feelerCol[1] == false && m_feelerCol[2] == true ) ||
-			(m_feelerCol[0] == true  && m_feelerCol[1] == true  && m_feelerCol[2] == true ))
+		if ((m_feelerCol[0] == true && m_feelerCol[1] == false && m_feelerCol[2] == false) ||
+			(m_feelerCol[0] == false && m_feelerCol[1] == true && m_feelerCol[2] == false) ||
+			(m_feelerCol[0] == true && m_feelerCol[1] == true && m_feelerCol[2] == false) ||
+			(m_feelerCol[0] == true && m_feelerCol[1] == false && m_feelerCol[2] == true) ||
+			(m_feelerCol[0] == true && m_feelerCol[1] == true && m_feelerCol[2] == true))
 		{
 			m_turn(-1.0, false);
-			std::cout << "turning left!" << std::endl;
-			return true;
-			//m_avoidDirection = -1.0;
 		}
 		else if ((m_feelerCol[0] == false && m_feelerCol[1] == false && m_feelerCol[2] == true) ||
-				( m_feelerCol[0] == false && m_feelerCol[1] == true  && m_feelerCol[2] == true))
+			(m_feelerCol[0] == false && m_feelerCol[1] == true && m_feelerCol[2] == true))
 		{
-			std::cout << "turning right!" << std::endl;
 			m_turn(1.0, false);
-			return true;
-			//m_avoidDirection = 1.0;
 		}
 	}
-	/*else
-	{
-		++m_avoidEndFrame;
-		if (m_avoidEndFrame >= m_avoidEndFrameMax)
-		{
-			switch (getState())
-			{
-			case IDLE:
-				setState(IDLE);
-				break;
-			case SEEK:
-			case ARRIVE:
-			case AVOID:
-				setState(SEEK);
-				break;
-			case FLEE:
-				setState(FLEE);
-				break;
-			}
-		}
-	}*/
-	return false;
 }
