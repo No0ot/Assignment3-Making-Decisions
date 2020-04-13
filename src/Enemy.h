@@ -6,6 +6,7 @@
 #include "Animation.h"
 #include "SpriteSheet.h"
 #include "AnimationState.h"
+#include "BehaviourState.h"
 #include "Util.h"
 #include <unordered_map>
 #include "HealthBar.h"

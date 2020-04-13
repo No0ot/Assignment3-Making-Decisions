@@ -269,5 +269,8 @@
     <ClInclude Include="..\src\HealthBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\BehaviourState.h">
+      <Filter>Enums</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
