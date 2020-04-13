@@ -6,6 +6,18 @@
 Level1Scene::Level1Scene() : m_iCurrentPts(0), m_iTotalPts(100), m_PtsBar(10, 10, m_iCurrentPts, m_iTotalPts, 2.0f, { 192, 192, 255, 192 })
 {
 	Level1Scene::start();
+	TheSoundManager::Instance()->load("../Assets/audio/EnemyHit.wav", "EnemyHit", sound_type::SOUND_SFX);
+	TheSoundManager::Instance()->load("../Assets/audio/EnemyShoot", "EnemyShoot", sound_type::SOUND_SFX);
+	TheSoundManager::Instance()->load("../Assets/audio/ObstacleHit.wav", "ObstacleBumped", sound_type::SOUND_SFX);
+	TheSoundManager::Instance()->load("../Assets/audio/ObstacleShot.wav", "ObstacleShot", sound_type::SOUND_SFX);
+	TheSoundManager::Instance()->load("../Assets/audio/PlayerStep.wav", "PlayerStep", sound_type::SOUND_SFX);
+	TheSoundManager::Instance()->load("../Assets/audio/PlayerHurt.ogg", "PlayerHit", sound_type::SOUND_SFX);
+	TheSoundManager::Instance()->load("../Assets/audio/PlayerMelee.wav", "PlayerMelee", sound_type::SOUND_SFX);
+	TheSoundManager::Instance()->load("../Assets/audio/PlayerShoot.wav", "PlayerShoot", sound_type::SOUND_SFX);
+	TheSoundManager::Instance()->load("../Assets/audio/PlayerStep.wav", "PlayerStep", sound_type::SOUND_SFX);
+
+
+
 }
 
 Level1Scene::~Level1Scene()
@@ -90,6 +102,7 @@ void Level1Scene::handleEvents()
 				{
 					std::cout << "move forward" << std::endl;
 					m_pPlayer->setAnimationState(PLAYER_RUN);
+					TheSoundManager::Instance()->playSound("PlayerStep", 0);
 					m_pPlayer->moveForward();;
 				}
 
@@ -116,6 +129,7 @@ void Level1Scene::handleEvents()
 
 				if (keyPressed == SDLK_f)
 				{
+					TheSoundManager::Instance()->playSound("PlayerMelee", 0);
 					m_pPlayer->setAnimationState(PLAYER_MELEE);
 
 				}
@@ -123,6 +137,7 @@ void Level1Scene::handleEvents()
 				if (keyPressed == SDLK_SPACE)
 				{
 					m_pPlayer->setAnimationState(PLAYER_SHOOT);
+					TheSoundManager::Instance()->playSound("PlayerShoot", 0);
 					m_pPlayer->shoot();
 
 				}
@@ -284,6 +299,7 @@ void Level1Scene::m_checkCollisions()
 		// Handle player collisions
 		if (CollisionManager::circleAABBCheck(m_pPlayer, m_pObstacleVec[i]))
 		{
+			TheSoundManager::Instance()->playSound("ObstacleBumped", 0);
 			m_pPlayer->setVelocity(m_pPlayer->getVelocity() * glm::vec2{ -0.8 ,-0.8 });
 			m_pPlayer->move();
 		}
@@ -328,6 +344,7 @@ void Level1Scene::m_checkCollisions()
 			Bullet* bullet = m_pPlayer->getBullets()[j];
 			if (CollisionManager::AABBCheck(m_pObstacleVec[i], m_pPlayer->getBullets()[j]))
 			{
+				TheSoundManager::Instance()->playSound("ObstacleShot", 0);
 				delete bullet;
 				m_pPlayer->getBullets()[j] = nullptr;
 				m_pPlayer->getBullets().erase(m_pPlayer->getBullets().begin() + 1 * j);
