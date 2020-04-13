@@ -20,7 +20,7 @@ int main(int argc, char * args[])
 	freopen("CON", "w", stdout);
 
 
-	TheGame::Instance()->init("Decision Making", 100, 100, 800, 600, false);
+	TheGame::Instance()->init("Decision Making", 100, 100, 800, 640, false);
 
 	while (TheGame::Instance()->running())
 	{

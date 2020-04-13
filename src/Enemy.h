@@ -43,10 +43,10 @@ public:
 	int randomnum;
 protected:
 	float m_fScaleFactor;
-	void m_buildAnimations();
+	
 
 	SpriteSheet* m_pSpriteSheet;
-	WolfAnimationState m_currentAnimationState;
+	
 	BehaviourState m_Behaviour;
 	std::unordered_map<std::string, Animation> m_pAnimations;
 

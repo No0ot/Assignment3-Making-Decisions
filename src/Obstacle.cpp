@@ -4,12 +4,12 @@
 
 Obstacle::Obstacle()
 {
-	TheTextureManager::Instance()->load("../Assets/sprites/Obstacle.png",
+	TheTextureManager::Instance()->load("../Assets/sprites/ObstacleL.png",
 		"obstacle", TheGame::Instance()->getRenderer());
 
 	const auto size = TheTextureManager::Instance()->getTextureSize("obstacle");
-	setWidth(40);
-	setHeight(40);
+	setWidth(80);
+	setHeight(80);
 	setPosition(glm::vec2(0.0f,0.0f));
 	setVelocity(glm::vec2(0.0f, 0.0f));
 	setType(OBSTACLE);

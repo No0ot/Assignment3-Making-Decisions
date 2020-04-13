@@ -157,7 +157,7 @@ void Level1Scene::start()
 {
 	m_buildGrid();
 	m_mapTiles();
-	for (int i = 0; i < 15; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		m_pObstacleVec.push_back(new Obstacle());
 		addChild(m_pObstacleVec.back());

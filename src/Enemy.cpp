@@ -8,6 +8,10 @@ Enemy::~Enemy()
 
 void Enemy::update()
 {
+	if (m_iCurrentHealth <= m_iTotalHealth / 2)
+	{
+		setBehaviour(BehaviourState::FLEE);
+	}
 	m_checkBehaviourState();
 	m_checkSteeringState();
 	m_checkBounds();
@@ -156,48 +160,7 @@ glm::vec2 Enemy::getTargetPosition()
 	return m_targetPosition;
 }
 
-void Enemy::m_buildAnimations()
-{
-	Animation idleAnimation = Animation();
 
-	idleAnimation.name = "idle";
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-1"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-2"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-3"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-4"));
-
-	m_pAnimations["idle"] = idleAnimation;
-
-	Animation runAnimation = Animation();
-
-	runAnimation.name = "run";
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-1"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-2"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-3"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-4"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-5"));
-	m_pAnimations["run"] = runAnimation;
-
-	Animation walkAnimation = Animation();
-
-	walkAnimation.name = "walk";
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-1"));
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-2"));
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-3"));
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-4"));
-
-	m_pAnimations["walk"] = walkAnimation;
-
-	Animation biteAnimation = Animation();
-
-	biteAnimation.name = "bite";
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-1"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-2"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-3"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-4"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-5"));
-	m_pAnimations["bite"] = biteAnimation;
-}
 
 BehaviourState Enemy::getBehaviour()
 {
@@ -233,11 +196,14 @@ void Enemy::m_checkBehaviourState()
 		break;
 	case BehaviourState::PATROL:
 		setState(SEEK);
+		m_maxSpeed = 3.0f;
+		
 		/*if (canDetect())
 			setBehaviour(BehaviourState::ASSAULT);*/
 		break;
 	case BehaviourState::PATROL2:
 		setState(SEEK);
+		m_maxSpeed = 3.0f;
 		if (canDetect())
 			setBehaviour(BehaviourState::ASSAULT);
 		break;
@@ -252,7 +218,7 @@ void Enemy::m_checkBehaviourState()
 		setBehaviour(BehaviourState::IDLE2);
 		break;
 	case BehaviourState::ASSAULT:
-		//set target in level1Scene
+		m_maxSpeed = 5.0f;
 		setState(SEEK);
 		//setState(ATTACK) once arrived
 
@@ -390,8 +356,8 @@ bool Enemy::m_checkFeelers()
 		m_avoidEndFrame = 0;
 		if (m_numFramesAvoiding >= m_maxFramesAvoiding)
 		{
-			//std::cout << "Argh! I can't find a way past this!" << std::endl;
-			m_turn(m_turnRate * 0.5);
+			std::cout << "Argh! I can't find a way past this!" << std::endl;
+			m_turn(m_turnRate * 20);
 			
 		}
 		else
