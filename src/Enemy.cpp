@@ -13,6 +13,10 @@ void Enemy::update()
 	m_checkBounds();
 
 	m_HealthBar->update();
+
+	std::cout << "STEERINGSTATE: " << getState()  << std::endl;
+	std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
+	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
 }
 
 void Enemy::clean()
@@ -138,7 +142,7 @@ void Enemy::move()
 
 void Enemy::m_turn(float angle)
 {
-	std::cout << "m_turn(" << angle << ") called!" << std::endl;
+	//std::cout << "m_turn(" << angle << ") called!" << std::endl;
 	m_currentHeading += angle;
 	const auto x = cos((90 + m_currentHeading) * Util::Deg2Rad);
 	const auto y = sin((90 + m_currentHeading) * Util::Deg2Rad);
@@ -215,16 +219,24 @@ void Enemy::m_checkBehaviourState()
 	case BehaviourState::PATROL:
 		//set target in level1Scene
 		setState(SEEK);
-		if (hasSmell() || hasLOS())
+		if (canDetect())
 			setBehaviour(BehaviourState::ASSAULT);
 		break;
 	case BehaviourState::ATTACK:
+		m_Stateframes = 0;
+		m_StateframesMax = 120;
 		//execute a command to attack once fininsihed set behaviour to FLEE or ASSAULT again
+		for (m_Stateframes; m_Stateframes < m_StateframesMax; m_Stateframes++)
+		{
+
+		}
+		setBehaviour(BehaviourState::PATROL);
 		break;
 	case BehaviourState::ASSAULT:
 		//set target in level1Scene
 		setState(SEEK);
 		//setState(ATTACK) once arrived
+
 		break;
 	case BehaviourState::FLEE:
 		//set target in level1Scene
@@ -303,7 +315,15 @@ void Enemy::m_checkArrival()
 	m_distanceToTarget = Util::distance(getPosition(), getTargetPosition());
 	if (m_distanceToTarget <= m_arrivalTarget)
 	{
-		this->setState(IDLE);
+		if (getBehaviour() == BehaviourState::COWER)
+			this->setState(IDLE);
+		else if (getBehaviour() == BehaviourState::ASSAULT)
+		{
+			this->setBehaviour(BehaviourState::ATTACK);
+			this->setState(IDLE);
+		}
+		if (getBehaviour() == BehaviourState::PATROL)
+			this->setState(SEEK);		// needs to get new target here
 	}
 	else if (m_distanceToTarget <= m_arrivalRadius)
 	{
@@ -343,7 +363,7 @@ bool Enemy::m_checkFeelers()
 		m_avoidEndFrame = 0;
 		if (m_numFramesAvoiding >= m_maxFramesAvoiding)
 		{
-			std::cout << "Argh! I can't find a way past this!" << std::endl;
+			//std::cout << "Argh! I can't find a way past this!" << std::endl;
 			m_turn(m_turnRate * 0.5);
 		}
 		else

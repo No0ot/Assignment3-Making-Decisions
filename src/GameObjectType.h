@@ -6,6 +6,8 @@ enum GameObjectType {
 	SHIP,
 	TARGET,
 	ENEMY,
+	MELEE_ENEMY,
+	RANGED_ENEMY,
 	MINE,
 	TILE,
 	BULLET,

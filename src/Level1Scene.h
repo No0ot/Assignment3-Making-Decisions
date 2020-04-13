@@ -31,6 +31,7 @@ public:
 	void m_checkCollisions();
 	std::vector<Tile*>& getTilesBehindCover();
 	glm::vec2 getNearestCoverPoint(const glm::vec2 position);
+	void updateEnemyTargets();
 private:
 	glm::vec2 m_mousePosition;
 	std::vector<Tile*> m_pGrid;

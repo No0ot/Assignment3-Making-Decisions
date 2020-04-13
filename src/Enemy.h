@@ -29,6 +29,7 @@ public:
 	glm::vec2 getFeelerEndPosition(unsigned int feeler_number);
 	void setFeeler(unsigned int feeler_number, bool value);
 	void setTargetPosition(glm::vec2 target_position);
+	BehaviourState getBehaviour();
 	
 	// Detection variables
 	void setLOS(bool value);
@@ -61,7 +62,7 @@ protected:
 	HealthBar* m_HealthBar;
 
 	// DEcision making Functions
-	BehaviourState getBehaviour();
+
 	void setBehaviour(BehaviourState state);
 	void m_checkBehaviourState();
 
@@ -89,6 +90,9 @@ protected:
 	int m_avoidEndFrameMax;
 	int m_numFramesAvoiding;
 	int m_maxFramesAvoiding;
+
+	int m_Stateframes;
+	int m_StateframesMax;
 
 	// target info
 	float m_angleToTarget;

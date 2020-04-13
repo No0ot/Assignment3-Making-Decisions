@@ -23,7 +23,7 @@ void Level1Scene::update()
 	updateDisplayList();
 	ExplosionManager::Instance()->update();
 	m_pPlayer->update();
-
+	updateEnemyTargets();
 	m_checkCollisions();
 	for (unsigned int enemy = 0; enemy < m_pEnemyVec.size(); enemy++)
 	{
@@ -169,7 +169,7 @@ void Level1Scene::start()
 	addChild(m_pPlayer);
 
 
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		m_pObstacleVec.push_back(new Obstacle());
 		addChild(m_pObstacleVec.back());
@@ -320,12 +320,14 @@ void Level1Scene::m_checkCollisions()
 			if (CollisionManager::lineAABBCheck(m_pEnemyVec[j]->getPosition(), m_pPlayer->getPosition(), m_pObstacleVec[i]))
 			{
 				m_pEnemyVec[j]->setLOS(false);
+				//m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
 			}
 
 			// Check Smell
 			if (CollisionManager::squaredRadiusCheck(m_pEnemyVec[j]->getPosition(), m_pEnemyVec[j]->getSmellRadius(), m_pPlayer))
 			{
 				m_pEnemyVec[j]->setSmell(true);
+			//	m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
 			}
 		}
 
@@ -387,4 +389,27 @@ glm::vec2 Level1Scene::getNearestCoverPoint(const glm::vec2 position)
 	}
 
 	return nearestCoverPoint;
+}
+
+void Level1Scene::updateEnemyTargets()
+{
+	for (unsigned int j = 0; j < m_pEnemyVec.size(); j++)
+	{
+		switch (m_pEnemyVec[j]->getBehaviour())
+		{
+		case BehaviourState::PATROL:
+			m_pEnemyVec[j]->setTargetPosition(getNearestCoverPoint(m_pEnemyVec[j]->getPosition()));
+			break;
+		case BehaviourState::ASSAULT:
+			m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
+			break;
+		case BehaviourState::FLEE:
+			m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
+			break;
+		case BehaviourState::COWER:
+			m_pEnemyVec[j]->setTargetPosition(getNearestCoverPoint(m_pEnemyVec[j]->getPosition()));
+			break;
+		}
+
+	}
 }

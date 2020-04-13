@@ -23,7 +23,7 @@ Melee_Enemy::Melee_Enemy()
 	setPosition(glm::vec2(0.0f, 0.0f));
 	setVelocity(glm::vec2(0.0f, 0.0f));
 	setIsColliding(false);
-	setType(GameObjectType::ENEMY);
+	setType(GameObjectType::MELEE_ENEMY);
 
 	m_currentHeading = rand() % 360 + 1;
 	//setVelocity(m_currentDirection * 10.0f);
