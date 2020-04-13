@@ -30,6 +30,7 @@ public:
 	void setFeeler(unsigned int feeler_number, bool value);
 	void setTargetPosition(glm::vec2 target_position);
 	BehaviourState getBehaviour();
+	void setBehaviour(BehaviourState state);
 	
 	// Detection variables
 	void setLOS(bool value);
@@ -63,7 +64,6 @@ protected:
 
 	// DEcision making Functions
 
-	void setBehaviour(BehaviourState state);
 	void m_checkBehaviourState();
 
 	// steering behaviour functions

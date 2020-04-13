@@ -14,9 +14,11 @@ void Enemy::update()
 
 	m_HealthBar->update();
 
+	
 	std::cout << "STEERINGSTATE: " << getState()  << std::endl;
 	std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
 	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
+	
 }
 
 void Enemy::clean()
@@ -214,6 +216,14 @@ void Enemy::m_checkBehaviourState()
 	case BehaviourState::IDLE2:
 		//set target in level1Scene
 		setState(IDLE);
+		m_Stateframes = 0;
+		m_StateframesMax = 120;
+		//execute a command to attack once fininsihed set behaviour to FLEE or ASSAULT again
+		for (m_Stateframes; m_Stateframes < m_StateframesMax; m_Stateframes++)
+		{
+			setState(IDLE);
+		}
+		setBehaviour(BehaviourState::PATROL);
 		// wait 5 seconds than setBehaviour to PATROL
 		break;
 	case BehaviourState::PATROL:
@@ -228,9 +238,9 @@ void Enemy::m_checkBehaviourState()
 		//execute a command to attack once fininsihed set behaviour to FLEE or ASSAULT again
 		for (m_Stateframes; m_Stateframes < m_StateframesMax; m_Stateframes++)
 		{
-
+			setState(IDLE);
 		}
-		setBehaviour(BehaviourState::PATROL);
+		setBehaviour(BehaviourState::IDLE2);
 		break;
 	case BehaviourState::ASSAULT:
 		//set target in level1Scene
@@ -315,15 +325,20 @@ void Enemy::m_checkArrival()
 	m_distanceToTarget = Util::distance(getPosition(), getTargetPosition());
 	if (m_distanceToTarget <= m_arrivalTarget)
 	{
-		if (getBehaviour() == BehaviourState::COWER)
-			this->setState(IDLE);
-		else if (getBehaviour() == BehaviourState::ASSAULT)
+		switch (getBehaviour())
 		{
+		case BehaviourState::COWER:
+			this->setState(IDLE);
+			break;
+		case BehaviourState::ASSAULT:
 			this->setBehaviour(BehaviourState::ATTACK);
 			this->setState(IDLE);
-		}
-		if (getBehaviour() == BehaviourState::PATROL)
+			break;
+		case BehaviourState::PATROL:
 			this->setState(SEEK);		// needs to get new target here
+			break;
+		}
+
 	}
 	else if (m_distanceToTarget <= m_arrivalRadius)
 	{
@@ -365,6 +380,7 @@ bool Enemy::m_checkFeelers()
 		{
 			//std::cout << "Argh! I can't find a way past this!" << std::endl;
 			m_turn(m_turnRate * 0.5);
+			
 		}
 		else
 		{

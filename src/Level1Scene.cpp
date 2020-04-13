@@ -25,7 +25,7 @@ void Level1Scene::update()
 	m_pPlayer->update();
 	updateEnemyTargets();
 	m_checkCollisions();
-	for (unsigned int enemy = 0; enemy < m_pEnemyVec.size(); enemy++)
+	/*for (unsigned int enemy = 0; enemy < m_pEnemyVec.size(); enemy++)
 	{
 		if (m_pEnemyVec[enemy]->canDetect())
 		{
@@ -33,8 +33,8 @@ void Level1Scene::update()
 		}
 		
 		glm::vec2 coverPosition = getNearestCoverPoint(m_pEnemyVec[enemy]->getPosition());
-		m_pEnemyVec[enemy]->setTargetPosition(coverPosition);
-	}
+		m_pEnemyVec[enemy]->setTargetPosition(coverPosition);*/
+//	}
 	m_PtsBar.update();
 }
 
@@ -169,7 +169,7 @@ void Level1Scene::start()
 	addChild(m_pPlayer);
 
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 15; i++)
 	{
 		m_pObstacleVec.push_back(new Obstacle());
 		addChild(m_pObstacleVec.back());
@@ -320,6 +320,7 @@ void Level1Scene::m_checkCollisions()
 			if (CollisionManager::lineAABBCheck(m_pEnemyVec[j]->getPosition(), m_pPlayer->getPosition(), m_pObstacleVec[i]))
 			{
 				m_pEnemyVec[j]->setLOS(false);
+				m_pEnemyVec[j]->setBehaviour(BehaviourState::IDLE2);
 				//m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
 			}
 
