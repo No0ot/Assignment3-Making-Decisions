@@ -32,7 +32,8 @@ Melee_Enemy::Melee_Enemy()
 	m_turnRate = 3.0f;
 
 	//setAcceleration(glm::vec2(0.1f, 0.0f));
-	setState(SteeringState::SEEK);
+	setBehaviour(BehaviourState::PATROL);
+	//setState(SteeringState::SEEK);
 	setTargetPosition({ 0, 0 });
 	m_angleToTarget = 0.0f;
 	m_feelerAngle = 30.0f;
