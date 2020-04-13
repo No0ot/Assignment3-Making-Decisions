@@ -8,11 +8,21 @@ Enemy::~Enemy()
 
 void Enemy::update()
 {
+	if (m_iCurrentHealth <= m_iTotalHealth / 2)
+	{
+		setBehaviour(BehaviourState::FLEE);
+	}
 	m_checkBehaviourState();
 	m_checkSteeringState();
 	m_checkBounds();
 
 	m_HealthBar->update();
+
+	
+	std::cout << "STEERINGSTATE: " << getState()  << std::endl;
+	std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
+	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
+	
 }
 
 void Enemy::clean()
@@ -138,7 +148,7 @@ void Enemy::move()
 
 void Enemy::m_turn(float angle)
 {
-	std::cout << "m_turn(" << angle << ") called!" << std::endl;
+	//std::cout << "m_turn(" << angle << ") called!" << std::endl;
 	m_currentHeading += angle;
 	const auto x = cos((90 + m_currentHeading) * Util::Deg2Rad);
 	const auto y = sin((90 + m_currentHeading) * Util::Deg2Rad);
@@ -150,48 +160,7 @@ glm::vec2 Enemy::getTargetPosition()
 	return m_targetPosition;
 }
 
-void Enemy::m_buildAnimations()
-{
-	Animation idleAnimation = Animation();
 
-	idleAnimation.name = "idle";
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-1"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-2"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-3"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-4"));
-
-	m_pAnimations["idle"] = idleAnimation;
-
-	Animation runAnimation = Animation();
-
-	runAnimation.name = "run";
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-1"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-2"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-3"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-4"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-5"));
-	m_pAnimations["run"] = runAnimation;
-
-	Animation walkAnimation = Animation();
-
-	walkAnimation.name = "walk";
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-1"));
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-2"));
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-3"));
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-4"));
-
-	m_pAnimations["walk"] = walkAnimation;
-
-	Animation biteAnimation = Animation();
-
-	biteAnimation.name = "bite";
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-1"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-2"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-3"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-4"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-5"));
-	m_pAnimations["bite"] = biteAnimation;
-}
 
 BehaviourState Enemy::getBehaviour()
 {
@@ -203,6 +172,11 @@ void Enemy::setBehaviour(BehaviourState state)
 	m_Behaviour = state;
 }
 
+void Enemy::setNextPatrolPoint(glm::vec2 target_position)
+{
+	m_nextPatrolPoint = target_position;
+}
+
 void Enemy::m_checkBehaviourState()
 {
 	switch (getBehaviour())
@@ -210,21 +184,44 @@ void Enemy::m_checkBehaviourState()
 	case BehaviourState::IDLE2:
 		//set target in level1Scene
 		setState(IDLE);
+		m_Stateframes = 0;
+		m_StateframesMax = 120;
+		//execute a command to attack once fininsihed set behaviour to FLEE or ASSAULT again
+		for (m_Stateframes; m_Stateframes < m_StateframesMax; m_Stateframes++)
+		{
+			setState(IDLE);
+		}
+		setBehaviour(BehaviourState::PATROL);
 		// wait 5 seconds than setBehaviour to PATROL
 		break;
 	case BehaviourState::PATROL:
-		//set target in level1Scene
 		setState(SEEK);
-		if (hasSmell() || hasLOS())
+		m_maxSpeed = 3.0f;
+		
+		/*if (canDetect())
+			setBehaviour(BehaviourState::ASSAULT);*/
+		break;
+	case BehaviourState::PATROL2:
+		setState(SEEK);
+		m_maxSpeed = 3.0f;
+		if (canDetect())
 			setBehaviour(BehaviourState::ASSAULT);
 		break;
 	case BehaviourState::ATTACK:
+		m_Stateframes = 0;
+		m_StateframesMax = 120;
 		//execute a command to attack once fininsihed set behaviour to FLEE or ASSAULT again
+		for (m_Stateframes; m_Stateframes < m_StateframesMax; m_Stateframes++)
+		{
+			setState(IDLE);
+		}
+		setBehaviour(BehaviourState::IDLE2);
 		break;
 	case BehaviourState::ASSAULT:
-		//set target in level1Scene
+		m_maxSpeed = 5.0f;
 		setState(SEEK);
 		//setState(ATTACK) once arrived
+
 		break;
 	case BehaviourState::FLEE:
 		//set target in level1Scene
@@ -303,7 +300,23 @@ void Enemy::m_checkArrival()
 	m_distanceToTarget = Util::distance(getPosition(), getTargetPosition());
 	if (m_distanceToTarget <= m_arrivalTarget)
 	{
-		this->setState(IDLE);
+		switch (getBehaviour())
+		{
+		case BehaviourState::COWER:
+			this->setState(IDLE);
+			break;
+		case BehaviourState::ASSAULT:
+			this->setBehaviour(BehaviourState::ATTACK);
+			this->setState(IDLE);
+			break;
+		case BehaviourState::PATROL:
+			this->setBehaviour(BehaviourState::PATROL2);	// needs to get new target here
+			break;
+		case BehaviourState::PATROL2:
+			randomnum = rand() % 4;
+			break;
+		}
+
 	}
 	else if (m_distanceToTarget <= m_arrivalRadius)
 	{
@@ -344,7 +357,8 @@ bool Enemy::m_checkFeelers()
 		if (m_numFramesAvoiding >= m_maxFramesAvoiding)
 		{
 			std::cout << "Argh! I can't find a way past this!" << std::endl;
-			m_turn(m_turnRate * 0.5);
+			m_turn(m_turnRate * 20);
+			
 		}
 		else
 		{

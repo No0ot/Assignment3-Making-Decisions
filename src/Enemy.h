@@ -29,7 +29,10 @@ public:
 	glm::vec2 getFeelerEndPosition(unsigned int feeler_number);
 	void setFeeler(unsigned int feeler_number, bool value);
 	void setTargetPosition(glm::vec2 target_position);
-	
+	BehaviourState getBehaviour();
+	void setBehaviour(BehaviourState state);
+	void setNextPatrolPoint(glm::vec2 target_position);
+
 	// Detection variables
 	void setLOS(bool value);
 	bool hasLOS() const;
@@ -37,13 +40,13 @@ public:
 	void setSmell(bool value);
 	bool hasSmell() const;
 	bool canDetect() const;
-
+	int randomnum;
 protected:
 	float m_fScaleFactor;
-	void m_buildAnimations();
+	
 
 	SpriteSheet* m_pSpriteSheet;
-	WolfAnimationState m_currentAnimationState;
+	
 	BehaviourState m_Behaviour;
 	std::unordered_map<std::string, Animation> m_pAnimations;
 
@@ -53,6 +56,7 @@ protected:
 	float m_currentHeading;
 	glm::vec2 m_currentDirection;
 	glm::vec2 m_targetPosition;
+	glm::vec2 m_nextPatrolPoint;
 	glm::vec2 getTargetPosition();
 
 	// Health and bar
@@ -61,8 +65,7 @@ protected:
 	HealthBar* m_HealthBar;
 
 	// DEcision making Functions
-	BehaviourState getBehaviour();
-	void setBehaviour(BehaviourState state);
+
 	void m_checkBehaviourState();
 
 	// steering behaviour functions
@@ -89,6 +92,9 @@ protected:
 	int m_avoidEndFrameMax;
 	int m_numFramesAvoiding;
 	int m_maxFramesAvoiding;
+
+	int m_Stateframes;
+	int m_StateframesMax;
 
 	// target info
 	float m_angleToTarget;

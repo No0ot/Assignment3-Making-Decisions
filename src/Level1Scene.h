@@ -9,6 +9,7 @@
 #include "Player.h"
 #include "Obstacle.h"
 #include "Melee_Enemy.h"
+#include "PatrolPoint.h"
 
 class Level1Scene : public Scene
 {
@@ -30,8 +31,12 @@ public:
 	void m_spawnEnemy();
 	void m_checkCollisions();
 	std::vector<Tile*>& getTilesBehindCover();
+	glm::vec2 getNearestPatrolPoint(const glm::vec2 position);
+	glm::vec2 getRandomPatrolPoint();
 	glm::vec2 getNearestCoverPoint(const glm::vec2 position);
+	void updateEnemyTargets();
 private:
+	glm::vec2 RandomPatrolPoint;
 	glm::vec2 m_mousePosition;
 	std::vector<Tile*> m_pGrid;
 	PlaneSprite* m_pPlaneSprite;
@@ -39,6 +44,7 @@ private:
 	std::vector<Obstacle*> m_pObstacleVec;
 	std::vector<Tile*> m_pTilesBehindCover;
 	std::vector<Enemy*> m_pEnemyVec;
+	std::vector<PatrolPoint*> m_pPatrolPoints;
 
 	int m_iTotalPts;
 	int m_iCurrentPts;

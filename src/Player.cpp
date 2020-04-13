@@ -3,7 +3,7 @@
 #include "Util.h"
 #include <iostream>
 
-Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_iCurrentHealth(75), m_HealthBar(*this, m_iCurrentHealth, m_iTotalHealth), m_fScaleFactor(0.5)
+Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_iCurrentHealth(75), m_HealthBar(*this, m_iCurrentHealth, m_iTotalHealth), m_fScaleFactor(0.8)
 {
 	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/atlas.txt",
 		"../Assets/sprites/atlas.png", "spritesheet", TheGame::Instance()->getRenderer());

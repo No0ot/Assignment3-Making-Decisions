@@ -5,9 +5,14 @@
 
 class Melee_Enemy final : public Enemy
 {
+private:
+	WolfAnimationState m_currentAnimationState;
 public:
 	Melee_Enemy();
 	void draw();
+	void m_buildAnimations();
+	WolfAnimationState getAnimState();
+	void setAnimState(WolfAnimationState state);
 };
 
-#endif // !__Ranged_Enemy__
+#endif // !__Melee_Enemy__

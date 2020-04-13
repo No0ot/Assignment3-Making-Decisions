@@ -4,7 +4,6 @@
 
 Ranged_Enemy::Ranged_Enemy()
 {
-	m_currentAnimationState = WOLF_IDLE;
 	m_iTotalHealth = 50;
 	m_iCurrentHealth = 50;
 	m_HealthBar = new HealthBar(*this, m_iCurrentHealth, m_iTotalHealth, 0.5f, { 255, 0, 0, 192 });
@@ -23,7 +22,7 @@ Ranged_Enemy::Ranged_Enemy()
 	setPosition(glm::vec2(0.0f, 0.0f));
 	setVelocity(glm::vec2(0.0f, 0.0f));
 	setIsColliding(false);
-	setType(GameObjectType::ENEMY);
+	setType(GameObjectType::RANGED_ENEMY);
 
 	m_currentHeading = rand() % 360 + 1;
 	//setVelocity(m_currentDirection * 10.0f);
@@ -82,4 +81,47 @@ void Ranged_Enemy::draw()
 	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
 	Util::DrawCircle(getPosition(), getHeight() * m_fScaleFactor);
 	Util::DrawCircle(getPosition(), getSmellRadius());
+}
+
+void Ranged_Enemy::m_buildAnimations()
+{
+	Animation idleAnimation = Animation();
+
+	idleAnimation.name = "idle";
+	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-1"));
+	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-2"));
+	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-3"));
+	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-4"));
+
+	m_pAnimations["idle"] = idleAnimation;
+
+	Animation runAnimation = Animation();
+
+	runAnimation.name = "run";
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-1"));
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-2"));
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-3"));
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-4"));
+	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-5"));
+	m_pAnimations["run"] = runAnimation;
+
+	Animation walkAnimation = Animation();
+
+	walkAnimation.name = "walk";
+	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-1"));
+	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-2"));
+	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-3"));
+	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-4"));
+
+	m_pAnimations["walk"] = walkAnimation;
+
+	Animation biteAnimation = Animation();
+
+	biteAnimation.name = "bite";
+	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-1"));
+	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-2"));
+	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-3"));
+	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-4"));
+	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-5"));
+	m_pAnimations["bite"] = biteAnimation;
 }

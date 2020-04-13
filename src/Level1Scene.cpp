@@ -26,18 +26,16 @@ Level1Scene::~Level1Scene()
 void Level1Scene::draw()
 {
 	drawDisplayList();
-	ExplosionManager::Instance()->draw();
 	m_PtsBar.draw();
 }
 
 void Level1Scene::update()
 {
 	updateDisplayList();
-	ExplosionManager::Instance()->update();
 	m_pPlayer->update();
-
+	updateEnemyTargets();
 	m_checkCollisions();
-	for (unsigned int enemy = 0; enemy < m_pEnemyVec.size(); enemy++)
+	/*for (unsigned int enemy = 0; enemy < m_pEnemyVec.size(); enemy++)
 	{
 		if (m_pEnemyVec[enemy]->canDetect())
 		{
@@ -45,8 +43,8 @@ void Level1Scene::update()
 		}
 		
 		glm::vec2 coverPosition = getNearestCoverPoint(m_pEnemyVec[enemy]->getPosition());
-		m_pEnemyVec[enemy]->setTargetPosition(coverPosition);
-	}
+		m_pEnemyVec[enemy]->setTargetPosition(coverPosition);*/
+//	}
 	m_PtsBar.update();
 }
 
@@ -80,8 +78,6 @@ void Level1Scene::handleEvents()
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 			{
-			auto explosion = ExplosionManager::Instance()->getExplosion();
-			explosion->setPosition(m_mousePosition);
 			}
 			break;
 		case SDL_KEYDOWN:
@@ -176,15 +172,7 @@ void Level1Scene::start()
 {
 	m_buildGrid();
 	m_mapTiles();
-
-	m_pPlaneSprite = new PlaneSprite();
-	addChild(m_pPlaneSprite);
-
-	m_pPlayer = new Player();
-	addChild(m_pPlayer);
-
-
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		m_pObstacleVec.push_back(new Obstacle());
 		addChild(m_pObstacleVec.back());
@@ -196,6 +184,17 @@ void Level1Scene::start()
 		m_pEnemyVec.push_back(new Melee_Enemy());
 		addChild(m_pEnemyVec.back());
 	}
+	for (int i = 0; i < 4; i++)
+	{
+		m_pPatrolPoints.push_back(new PatrolPoint());
+		m_spawnObject(m_pPatrolPoints.back());
+		m_pPatrolPoints.back()->getTile()->setTileState(GOAL);
+
+	}
+
+	m_pPlayer = new Player();
+	addChild(m_pPlayer);
+	m_spawnObject(m_pPlayer);
 
 	m_spawnEnemy();
 }
@@ -336,12 +335,16 @@ void Level1Scene::m_checkCollisions()
 			if (CollisionManager::lineAABBCheck(m_pEnemyVec[j]->getPosition(), m_pPlayer->getPosition(), m_pObstacleVec[i]))
 			{
 				m_pEnemyVec[j]->setLOS(false);
+			
+				//m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
 			}
+	
 
 			// Check Smell
 			if (CollisionManager::squaredRadiusCheck(m_pEnemyVec[j]->getPosition(), m_pEnemyVec[j]->getSmellRadius(), m_pPlayer))
 			{
 				m_pEnemyVec[j]->setSmell(true);
+			//	m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
 			}
 		}
 
@@ -404,4 +407,63 @@ glm::vec2 Level1Scene::getNearestCoverPoint(const glm::vec2 position)
 	}
 
 	return nearestCoverPoint;
+}
+
+glm::vec2 Level1Scene::getNearestPatrolPoint(const glm::vec2 position)
+{
+	if (m_pPatrolPoints.empty())
+	{
+		std::cout << "There were no tiles behind cover!" << std::endl;
+		return position;
+	}
+
+	glm::vec2 nearestPatrolPoint = m_pPatrolPoints[0]->getPosition();
+	float sqrmagFromCover = Util::squaredMagnitude(nearestPatrolPoint - position);
+
+	for (unsigned int i = 1; i < m_pPatrolPoints.size(); i++)
+	{
+		glm::vec2 currentTilePosition = m_pPatrolPoints[i]->getPosition();
+		float sqrmagFromCurrent = Util::squaredMagnitude(currentTilePosition - position);
+		if (sqrmagFromCurrent < sqrmagFromCover)
+		{
+			nearestPatrolPoint = currentTilePosition;
+			sqrmagFromCover = sqrmagFromCurrent;
+		}
+	}
+
+	return nearestPatrolPoint;
+}
+
+glm::vec2 Level1Scene::getRandomPatrolPoint()
+{
+	int temp = rand() % 4;
+	RandomPatrolPoint = m_pPatrolPoints[temp]->getPosition();
+	return RandomPatrolPoint;
+}
+
+void Level1Scene::updateEnemyTargets()
+{
+	for (unsigned int j = 0; j < m_pEnemyVec.size(); j++)
+	{
+		
+		switch (m_pEnemyVec[j]->getBehaviour())
+		{
+		case BehaviourState::PATROL:
+			m_pEnemyVec[j]->setTargetPosition(getNearestPatrolPoint(m_pEnemyVec[j]->getPosition()));
+			break;
+		case BehaviourState::PATROL2:
+			m_pEnemyVec[j]->setTargetPosition(m_pPatrolPoints[m_pEnemyVec[j]->randomnum]->getPosition());
+			break;
+		case BehaviourState::ASSAULT:
+			m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
+			break;
+		case BehaviourState::FLEE:
+			m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
+			break;
+		case BehaviourState::COWER:
+			m_pEnemyVec[j]->setTargetPosition(getNearestCoverPoint(m_pEnemyVec[j]->getPosition()));
+			break;
+		}
+
+	}
 }

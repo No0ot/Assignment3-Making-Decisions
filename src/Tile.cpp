@@ -8,12 +8,12 @@
 Tile::Tile(glm::vec2 world_position, glm::vec2 grid_position):
 	m_gridPosition(grid_position)
 {
-	TheTextureManager::Instance()->load("../Assets/sprites/backgroundsm.png",
+	TheTextureManager::Instance()->load("../Assets/sprites/backgroundL.png",
 		"tile", TheGame::Instance()->getRenderer());
 
 	auto size = TheTextureManager::Instance()->getTextureSize("tile");
-	setWidth(40);
-	setHeight(40);
+	setWidth(80);
+	setHeight(80);
 	setPosition(world_position);
 
 	std::ostringstream tempLabel;
@@ -55,6 +55,16 @@ void Tile::draw()
 		SDL_Rect tilerect = { (xComponent - (wComponent * 0.5)), (yComponent - (hComponent * 0.5)), wComponent, hComponent };
 		SDL_SetRenderDrawBlendMode(TheGame::Instance()->getRenderer(), SDL_BLENDMODE_BLEND);
 		SDL_SetRenderDrawColor(TheGame::Instance()->getRenderer(), 64, 64, 64, 64);
+		SDL_RenderFillRect(TheGame::Instance()->getRenderer(), &tilerect);
+	}
+
+	if (getTileState() == GOAL)
+	{
+		const int wComponent = getWidth();
+		const int hComponent = getHeight();
+		SDL_Rect tilerect = { (xComponent - (wComponent * 0.5)), (yComponent - (hComponent * 0.5)), wComponent, hComponent };
+		SDL_SetRenderDrawBlendMode(TheGame::Instance()->getRenderer(), SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(TheGame::Instance()->getRenderer(), 0, 0, 150, 100);
 		SDL_RenderFillRect(TheGame::Instance()->getRenderer(), &tilerect);
 	}
 

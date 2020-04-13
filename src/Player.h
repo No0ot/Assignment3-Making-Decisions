@@ -2,7 +2,7 @@
 #ifndef __PLAYER__
 #define __PLAYER__
 
-#include "DisplayObject.h"
+#include "PathFindingDisplayObject.h"
 #include "AnimationState.h"
 #include "Animation.h"
 #include "SpriteSheet.h"
@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include "HealthBar.h"
 
-class Player : public DisplayObject
+class Player : public PathFindingDisplayObject
 {
 public:
 	Player();
