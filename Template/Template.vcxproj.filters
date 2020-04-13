@@ -111,9 +111,6 @@
     <ClCompile Include="..\src\PlaneSprite.cpp">
       <Filter>Game Objects</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Explosion.cpp">
-      <Filter>Game Objects</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\ExplosionManager.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
@@ -133,6 +130,9 @@
       <Filter>Game Objects</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Ranged_Enemy.cpp">
+      <Filter>Game Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\PatrolPoint.cpp">
       <Filter>Game Objects</Filter>
     </ClCompile>
   </ItemGroup>
@@ -254,9 +254,6 @@
     <ClInclude Include="..\src\ShapeType.h">
       <Filter>Enums</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Explosion.h">
-      <Filter>Game Objects</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\ExplosionManager.h">
       <Filter>Managers</Filter>
     </ClInclude>
@@ -283,6 +280,9 @@
     </ClInclude>
     <ClInclude Include="..\src\BehaviourState.h">
       <Filter>Enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\PatrolPoint.h">
+      <Filter>Game Objects</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

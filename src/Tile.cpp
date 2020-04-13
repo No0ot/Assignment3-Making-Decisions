@@ -58,6 +58,16 @@ void Tile::draw()
 		SDL_RenderFillRect(TheGame::Instance()->getRenderer(), &tilerect);
 	}
 
+	if (getTileState() == GOAL)
+	{
+		const int wComponent = getWidth();
+		const int hComponent = getHeight();
+		SDL_Rect tilerect = { (xComponent - (wComponent * 0.5)), (yComponent - (hComponent * 0.5)), wComponent, hComponent };
+		SDL_SetRenderDrawBlendMode(TheGame::Instance()->getRenderer(), SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(TheGame::Instance()->getRenderer(), 0, 0, 150, 100);
+		SDL_RenderFillRect(TheGame::Instance()->getRenderer(), &tilerect);
+	}
+
 //	m_pClosedOpenLabel->draw();
 	//m_pValueLabel->draw();
 }

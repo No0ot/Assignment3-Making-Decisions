@@ -1,16 +1,16 @@
 #pragma once
-#ifndef __EXPLOSION__
-#define __EXPLOSION__
-#include "DisplayObject.h"
+#ifndef __PATROLPOINT__
+#define __PATROLPOINT__
+#include "PathFindingDisplayObject.h"
 #include "Animation.h"
 #include <unordered_map>
 #include "SpriteSheet.h"
 
-class Explosion : public DisplayObject
+class PatrolPoint : public PathFindingDisplayObject
 {
 public:
-	Explosion();
-	~Explosion();
+	PatrolPoint();
+	~PatrolPoint();
 
 	// DisplayObject Life Cycle Functions
 	virtual void draw() override;

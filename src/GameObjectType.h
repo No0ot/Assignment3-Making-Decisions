@@ -8,6 +8,7 @@ enum GameObjectType {
 	ENEMY,
 	MELEE_ENEMY,
 	RANGED_ENEMY,
+	PATROL_POINT,
 	MINE,
 	TILE,
 	BULLET,

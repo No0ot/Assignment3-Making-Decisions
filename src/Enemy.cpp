@@ -209,6 +209,11 @@ void Enemy::setBehaviour(BehaviourState state)
 	m_Behaviour = state;
 }
 
+void Enemy::setNextPatrolPoint(glm::vec2 target_position)
+{
+	m_nextPatrolPoint = target_position;
+}
+
 void Enemy::m_checkBehaviourState()
 {
 	switch (getBehaviour())
@@ -227,7 +232,11 @@ void Enemy::m_checkBehaviourState()
 		// wait 5 seconds than setBehaviour to PATROL
 		break;
 	case BehaviourState::PATROL:
-		//set target in level1Scene
+		setState(SEEK);
+		/*if (canDetect())
+			setBehaviour(BehaviourState::ASSAULT);*/
+		break;
+	case BehaviourState::PATROL2:
 		setState(SEEK);
 		if (canDetect())
 			setBehaviour(BehaviourState::ASSAULT);
@@ -335,7 +344,10 @@ void Enemy::m_checkArrival()
 			this->setState(IDLE);
 			break;
 		case BehaviourState::PATROL:
-			this->setState(SEEK);		// needs to get new target here
+			this->setBehaviour(BehaviourState::PATROL2);	// needs to get new target here
+			break;
+		case BehaviourState::PATROL2:
+			randomnum = rand() % 4;
 			break;
 		}
 

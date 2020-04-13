@@ -5,6 +5,7 @@ enum class BehaviourState {
 	NO_STATE = -1,
 	IDLE2,		// keep enemy at current position
 	PATROL,		// seek to closest patrol  tile on list and than patrol between that tile and the next closest patrol tile
+	PATROL2,
 	ATTACK,		// Initiate attack command
 	ASSAULT,	// Seek to player
 	FLEE,		// Flee from player

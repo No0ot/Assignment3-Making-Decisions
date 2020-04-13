@@ -31,7 +31,8 @@ public:
 	void setTargetPosition(glm::vec2 target_position);
 	BehaviourState getBehaviour();
 	void setBehaviour(BehaviourState state);
-	
+	void setNextPatrolPoint(glm::vec2 target_position);
+
 	// Detection variables
 	void setLOS(bool value);
 	bool hasLOS() const;
@@ -39,7 +40,7 @@ public:
 	void setSmell(bool value);
 	bool hasSmell() const;
 	bool canDetect() const;
-
+	int randomnum;
 protected:
 	float m_fScaleFactor;
 	void m_buildAnimations();
@@ -55,6 +56,7 @@ protected:
 	float m_currentHeading;
 	glm::vec2 m_currentDirection;
 	glm::vec2 m_targetPosition;
+	glm::vec2 m_nextPatrolPoint;
 	glm::vec2 getTargetPosition();
 
 	// Health and bar

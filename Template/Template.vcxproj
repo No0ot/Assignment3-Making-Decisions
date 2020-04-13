@@ -164,7 +164,7 @@
     <ClCompile Include="..\src\CollisionManager.cpp" />
     <ClCompile Include="..\src\DisplayObject.cpp" />
     <ClCompile Include="..\src\EndScene.cpp" />
-    <ClCompile Include="..\src\Explosion.cpp" />
+    <ClCompile Include="..\src\PatrolPoint.cpp" />
     <ClCompile Include="..\src\ExplosionManager.cpp" />
     <ClCompile Include="..\src\FontManager.cpp" />
     <ClCompile Include="..\src\Game.cpp" />
@@ -206,7 +206,7 @@
     <ClInclude Include="..\src\Config.h" />
     <ClInclude Include="..\src\DisplayObject.h" />
     <ClInclude Include="..\src\EndScene.h" />
-    <ClInclude Include="..\src\Explosion.h" />
+    <ClInclude Include="..\src\PatrolPoint.h" />
     <ClInclude Include="..\src\ExplosionManager.h" />
     <ClInclude Include="..\src\FontManager.h" />
     <ClInclude Include="..\src\Frame.h" />
