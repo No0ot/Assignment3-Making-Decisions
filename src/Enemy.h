@@ -6,18 +6,19 @@
 #include "Animation.h"
 #include "SpriteSheet.h"
 #include "AnimationState.h"
+#include "BehaviourState.h"
 #include "Util.h"
 #include <unordered_map>
 #include "HealthBar.h"
 
-class Enemy final : public PathFindingDisplayObject
+class Enemy : public PathFindingDisplayObject
 {
 public:
 	Enemy();
 	~Enemy();
 
 	// Inherited via GameObject
-	virtual void draw() override;
+	virtual void draw() = 0;
 	virtual void update() override;
 	virtual void clean() override;
 
@@ -37,12 +38,13 @@ public:
 	bool hasSmell() const;
 	bool canDetect() const;
 
-private:
+protected:
 	float m_fScaleFactor;
 	void m_buildAnimations();
 
 	SpriteSheet* m_pSpriteSheet;
 	WolfAnimationState m_currentAnimationState;
+	BehaviourState m_Behaviour;
 	std::unordered_map<std::string, Animation> m_pAnimations;
 
 	float m_maxSpeed;
@@ -56,7 +58,12 @@ private:
 	// Health and bar
 	int m_iTotalHealth;
 	int m_iCurrentHealth;
-	HealthBar m_HealthBar;
+	HealthBar* m_HealthBar;
+
+	// DEcision making Functions
+	BehaviourState getBehaviour();
+	void setBehaviour(BehaviourState state);
+	void m_checkBehaviourState();
 
 	// steering behaviour functions
 	void m_checkSteeringState();
@@ -94,6 +101,5 @@ private:
 	bool m_hasSmell;
 	float m_smellRadius;
 };
-
 
 #endif /* defined (__ENEMY__) */

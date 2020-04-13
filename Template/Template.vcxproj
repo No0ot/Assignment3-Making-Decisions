@@ -173,11 +173,13 @@
     <ClCompile Include="..\src\Label.cpp" />
     <ClCompile Include="..\src\Level1Scene.cpp" />
     <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\Melee_Enemy.cpp" />
     <ClCompile Include="..\src\Obstacle.cpp" />
     <ClCompile Include="..\src\PathFindingDisplayObject.cpp" />
     <ClCompile Include="..\src\PlaneSprite.cpp" />
     <ClCompile Include="..\src\Enemy.cpp" />
     <ClCompile Include="..\src\Player.cpp" />
+    <ClCompile Include="..\src\Ranged_Enemy.cpp" />
     <ClCompile Include="..\src\Scene.cpp" />
     <ClCompile Include="..\src\ship.cpp" />
     <ClCompile Include="..\src\SoundManager.cpp" />
@@ -197,6 +199,7 @@
     <ClInclude Include="..\include\IMGUI\imstb_truetype.h" />
     <ClInclude Include="..\include\IMGUI_SDL\imgui_sdl.h" />
     <ClInclude Include="..\src\Animation.h" />
+    <ClInclude Include="..\src\BehaviourState.h" />
     <ClInclude Include="..\src\Bullet.h" />
     <ClInclude Include="..\src\CollisionManager.h" />
     <ClInclude Include="..\src\CollisionShape.h" />
@@ -214,12 +217,14 @@
     <ClInclude Include="..\src\Heuristic.h" />
     <ClInclude Include="..\src\Label.h" />
     <ClInclude Include="..\src\Level1Scene.h" />
+    <ClInclude Include="..\src\Melee_Enemy.h" />
     <ClInclude Include="..\src\Obstacle.h" />
     <ClInclude Include="..\src\PathFindingDisplayObject.h" />
     <ClInclude Include="..\src\PlaneSprite.h" />
     <ClInclude Include="..\src\Enemy.h" />
     <ClInclude Include="..\src\Player.h" />
     <ClInclude Include="..\src\AnimationState.h" />
+    <ClInclude Include="..\src\Ranged_Enemy.h" />
     <ClInclude Include="..\src\Scene.h" />
     <ClInclude Include="..\src\SceneState.h" />
     <ClInclude Include="..\src\ShapeType.h" />

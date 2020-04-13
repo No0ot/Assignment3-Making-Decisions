@@ -55,6 +55,7 @@ public:
 
 	void displayTile();
 
+	void setBehindCover(bool value);
 private:
 	float m_cost = Config::TILE_COST;
 	float m_targetDist = 0.0f;
@@ -69,6 +70,8 @@ private:
 	glm::vec2 m_goalLocation;
 	std::vector<Tile*> m_pNeighbours;
 	Heuristic m_heuristic;
+
+	bool m_behindCover;
 };
 
 

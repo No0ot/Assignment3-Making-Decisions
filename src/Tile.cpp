@@ -48,6 +48,16 @@ void Tile::draw()
 	TheTextureManager::Instance()->draw("tile", xComponent, yComponent,
 		TheGame::Instance()->getRenderer(), 0, 255, true);
 
+	if (m_behindCover)
+	{
+		const int wComponent = getWidth();
+		const int hComponent = getHeight();
+		SDL_Rect tilerect = { (xComponent - (wComponent * 0.5)), (yComponent - (hComponent * 0.5)), wComponent, hComponent };
+		SDL_SetRenderDrawBlendMode(TheGame::Instance()->getRenderer(), SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(TheGame::Instance()->getRenderer(), 64, 64, 64, 64);
+		SDL_RenderFillRect(TheGame::Instance()->getRenderer(), &tilerect);
+	}
+
 //	m_pClosedOpenLabel->draw();
 	//m_pValueLabel->draw();
 }
@@ -295,4 +305,9 @@ void Tile::displayTile()
 	
 	std::cout << "+-                             ->" << std::endl;
 	std::cout << "+------------------------------->" << std::endl;
+}
+
+void Tile::setBehindCover(bool value)
+{
+	m_behindCover = value;
 }
