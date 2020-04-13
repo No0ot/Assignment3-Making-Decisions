@@ -10,14 +10,14 @@
 #include <unordered_map>
 #include "HealthBar.h"
 
-class Enemy final : public PathFindingDisplayObject
+class Enemy : public PathFindingDisplayObject
 {
 public:
 	Enemy();
 	~Enemy();
 
 	// Inherited via GameObject
-	virtual void draw() override;
+	virtual void draw() = 0;
 	virtual void update() override;
 	virtual void clean() override;
 
@@ -37,7 +37,7 @@ public:
 	bool hasSmell() const;
 	bool canDetect() const;
 
-private:
+protected:
 	float m_fScaleFactor;
 	void m_buildAnimations();
 
@@ -56,7 +56,7 @@ private:
 	// Health and bar
 	int m_iTotalHealth;
 	int m_iCurrentHealth;
-	HealthBar m_HealthBar;
+	HealthBar* m_HealthBar;
 
 	// steering behaviour functions
 	void m_checkSteeringState();
@@ -94,6 +94,5 @@ private:
 	bool m_hasSmell;
 	float m_smellRadius;
 };
-
 
 #endif /* defined (__ENEMY__) */

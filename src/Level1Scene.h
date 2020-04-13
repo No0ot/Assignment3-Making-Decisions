@@ -8,7 +8,7 @@
 #include "PlaneSprite.h"
 #include "Player.h"
 #include "Obstacle.h"
-#include "Enemy.h"
+#include "Melee_Enemy.h"
 
 class Level1Scene : public Scene
 {

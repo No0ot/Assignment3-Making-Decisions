@@ -176,7 +176,7 @@ void Level1Scene::start()
 	m_spawnObstacles();
 	for (int i = 0; i < 1; i++)
 	{
-		m_pEnemyVec.push_back(new Enemy());
+		m_pEnemyVec.push_back(new Melee_Enemy());
 		addChild(m_pEnemyVec.back());
 	}
 
