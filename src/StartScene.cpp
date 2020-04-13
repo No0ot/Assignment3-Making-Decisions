@@ -6,6 +6,8 @@
 StartScene::StartScene()
 {
 	StartScene::start();
+	TheSoundManager::Instance()->load("../Assets/audio/GameStart.ogg", "GameStart", sound_type::SOUND_SFX);
+
 }
 
 StartScene::~StartScene()
@@ -56,7 +58,9 @@ void StartScene::handleEvents()
 				TheGame::Instance()->quit();
 				break;
 			case SDLK_1:
+				TheSoundManager::Instance()->playSound("GameStart", 0);
 				TheGame::Instance()->changeSceneState(SceneState::LEVEL1_SCENE);
+
 				break;
 			case SDLK_2:
 				//TheGame::Instance()->changeSceneState(SceneState::END_SCENE);

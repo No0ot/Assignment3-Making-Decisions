@@ -14,6 +14,14 @@ Game::Game() :
 	m_pWindow(nullptr), m_pRenderer(nullptr), m_currentFrame(0), m_bRunning(true), m_frames(0), m_currentScene(nullptr), m_currentSceneState(NO_SCENE)
 {
 	srand(unsigned(time(nullptr)));  // random seed
+	TheSoundManager::Instance()->load("../Assets/audio/ArmyManSongQuiet.wav", "Music", sound_type::SOUND_MUSIC);
+	bool musicPlaying = false;
+	if (musicPlaying == false)
+	{
+		TheSoundManager::Instance()->playMusic("Music", -1);
+		musicPlaying = true;
+	}
+
 }
 
 Game::~Game()
