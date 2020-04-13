@@ -266,6 +266,42 @@ void Enemy::m_buildAnimations()
 	m_pAnimations["bite"] = biteAnimation;
 }
 
+BehaviourState Enemy::getBehaviour()
+{
+	return m_Behaviour;
+}
+
+void Enemy::setBehaviour(BehaviourState state)
+{
+	m_Behaviour = state;
+}
+
+void Enemy::m_checkBehaviourState()
+{
+	switch (getBehaviour())
+	{
+	case BehaviourState::IDLE2:
+
+		setState(IDLE);
+		break;
+	case BehaviourState::PATROL:
+
+		break;
+	case BehaviourState::ATTACK:
+
+		break;
+	case BehaviourState::ASSAULT:
+
+		break;
+	case BehaviourState::FLEE:
+
+		break;
+	case BehaviourState::COWER:
+		break;
+	}
+}
+
+
 void Enemy::m_checkSteeringState()
 {
 	if (m_checkFeelers())

@@ -43,6 +43,7 @@ private:
 
 	SpriteSheet* m_pSpriteSheet;
 	WolfAnimationState m_currentAnimationState;
+	BehaviourState m_Behaviour;
 	std::unordered_map<std::string, Animation> m_pAnimations;
 
 	float m_maxSpeed;
@@ -57,6 +58,11 @@ private:
 	int m_iTotalHealth;
 	int m_iCurrentHealth;
 	HealthBar m_HealthBar;
+
+	// DEcision making Functions
+	BehaviourState getBehaviour();
+	void setBehaviour(BehaviourState state);
+	void m_checkBehaviourState();
 
 	// steering behaviour functions
 	void m_checkSteeringState();
