@@ -3,7 +3,7 @@
 #include "Util.h"
 #include <iostream>
 
-Player::Player(): m_currentAnimationState(PLAYER_IDLE)
+Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_iCurrentHealth(75), m_HealthBar(*this, m_iCurrentHealth, m_iTotalHealth), m_fScaleFactor(0.5)
 {
 	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/atlas.txt",
 		"../Assets/sprites/atlas.png", "spritesheet", TheGame::Instance()->getRenderer());
@@ -44,22 +44,22 @@ void Player::draw()
 	{
 	case PLAYER_IDLE:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["idle"],
-			getPosition().x, getPosition().y, m_pAnimations["idle"].m_currentFrame, 0.12f,
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.12f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
 	case PLAYER_RUN:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["run"],
-			getPosition().x, getPosition().y, m_pAnimations["run"].m_currentFrame, 0.25f,
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["run"].m_currentFrame, 0.25f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
 	case PLAYER_MELEE:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["melee"],
-			getPosition().x, getPosition().y, m_pAnimations["melee"].m_currentFrame, 1.5f,
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["melee"].m_currentFrame, 1.5f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
 	case PLAYER_SHOOT:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["shoot"],
-			getPosition().x, getPosition().y, m_pAnimations["shoot"].m_currentFrame, 0.12f,
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["shoot"].m_currentFrame, 0.12f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 	}
 
@@ -74,6 +74,8 @@ void Player::draw()
 	Util::DrawLine(getPosition(), getPosition() +  dv2 *  mag);
 	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * mag);
 	Util::DrawCircle(getPosition(), getHeight() * 0.7);
+
+	m_HealthBar.draw();
 }
 
 void Player::update()
@@ -102,6 +104,7 @@ void Player::update()
 	}
 
 	updatebulletspawn();
+	m_HealthBar.update();
 	//std::cout << bulletspawnPos.x <<" " << bulletspawnPos.y  << std::endl;
 }
 

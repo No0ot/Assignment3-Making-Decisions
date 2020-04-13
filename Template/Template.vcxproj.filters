@@ -126,6 +126,9 @@
     <ClCompile Include="..\src\Enemy.cpp">
       <Filter>Game Objects</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\HealthBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Game.h">
@@ -262,6 +265,9 @@
     </ClInclude>
     <ClInclude Include="..\src\AnimationState.h">
       <Filter>Enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\HealthBar.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

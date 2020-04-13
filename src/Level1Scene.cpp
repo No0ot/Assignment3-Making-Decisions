@@ -3,7 +3,7 @@
 #include "ExplosionManager.h"
 #include "Util.h"
 
-Level1Scene::Level1Scene()
+Level1Scene::Level1Scene() : m_iCurrentPts(0), m_iTotalPts(100), m_PtsBar(10, 10, m_iCurrentPts, m_iTotalPts, 2.0f, { 192, 192, 255, 192 })
 {
 	Level1Scene::start();
 }
@@ -15,6 +15,7 @@ void Level1Scene::draw()
 {
 	drawDisplayList();
 	ExplosionManager::Instance()->draw();
+	m_PtsBar.draw();
 }
 
 void Level1Scene::update()
@@ -23,26 +24,16 @@ void Level1Scene::update()
 	ExplosionManager::Instance()->update();
 	m_pPlayer->update();
 
-	for (int i = 0; i < (int)m_pObstacleVec.size(); i++)
+	m_checkCollisions();
+	for (unsigned int enemy = 0; enemy < m_pEnemyVec.size(); enemy++)
 	{
-		if (CollisionManager::circleAABBCheck(m_pPlayer,m_pObstacleVec[i] ))
+		if (m_pEnemyVec[enemy]->canDetect())
 		{
-			m_pPlayer->setVelocity(m_pPlayer->getVelocity() * glm::vec2{ -0.8 ,-0.8 });
+			std::cout << "I've found you!" << std::endl;
+			m_pEnemyVec[enemy]->setTargetPosition(m_pPlayer->getPosition());
 		}
-		for (int j = 0; j < (int)m_pPlayer->getBullets().size(); j++)
-		{
-
-			Bullet* bullet = m_pPlayer->getBullets()[j];
-			if (CollisionManager::AABBCheck(m_pObstacleVec[i], m_pPlayer->getBullets()[j] ))
-			{
-				delete bullet;
-				m_pPlayer->getBullets()[j] = nullptr;
-				m_pPlayer->getBullets().erase(m_pPlayer->getBullets().begin() + 1 * j);
-				break;
-			}
-		}
-				m_pPlayer->getBullets().shrink_to_fit();
 	}
+	m_PtsBar.update();
 }
 
 void Level1Scene::clean()
@@ -183,15 +174,13 @@ void Level1Scene::start()
 
 	}
 	m_spawnObstacles();
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 1; i++)
 	{
 		m_pEnemyVec.push_back(new Enemy());
 		addChild(m_pEnemyVec.back());
 	}
 
 	m_spawnEnemy();
-
-	
 }
 
 void Level1Scene::m_buildGrid()
@@ -272,10 +261,79 @@ void Level1Scene::m_spawnObstacles()
 
 void Level1Scene::m_spawnEnemy()
 {
-
 	for (Enemy* enemy : m_pEnemyVec)
 	{
 		m_spawnObject(enemy);
 	}
+}
 
+void Level1Scene::m_checkCollisions()
+{
+	// first, reset all feelers to false and LOS to true
+	for (unsigned int i = 0; i < m_pEnemyVec.size(); i++)
+	{
+		for (unsigned int j = 0; j < 3; j++)
+		{
+			m_pEnemyVec[i]->setFeeler(j, false);
+			m_pEnemyVec[i]->setLOS(true);
+		}
+	}
+
+	for (unsigned int i = 0; i < m_pObstacleVec.size(); i++)
+	{
+		// Handle player collisions
+		if (CollisionManager::circleAABBCheck(m_pPlayer, m_pObstacleVec[i]))
+		{
+			m_pPlayer->setVelocity(m_pPlayer->getVelocity() * glm::vec2{ -0.8 ,-0.8 });
+			m_pPlayer->move();
+		}
+
+		// Handle enemy collisions
+		for (unsigned int j = 0; j < m_pEnemyVec.size(); j++)
+		{
+			// Check if colliding with obstacles
+			if (CollisionManager::circleAABBCheck(m_pEnemyVec[j], m_pObstacleVec[i]))
+			{
+				m_pEnemyVec[j]->setVelocity(m_pEnemyVec[j]->getVelocity() * glm::vec2{ -1.0, -1.0 });
+				m_pEnemyVec[j]->move();
+				m_pEnemyVec[j]->setVelocity(glm::vec2{ 0, 0 });
+			}
+
+			// Check feelers
+			for (unsigned int feeler = 0; feeler < 3; feeler++)
+			{
+				if (CollisionManager::lineAABBCheck(m_pEnemyVec[j]->getPosition(), m_pEnemyVec[j]->getFeelerEndPosition(feeler), m_pObstacleVec[i]))
+				{
+					m_pEnemyVec[j]->setFeeler(feeler, true);
+				}
+			}
+
+			// Check LOS
+			if (CollisionManager::lineAABBCheck(m_pEnemyVec[j]->getPosition(), m_pPlayer->getPosition(), m_pObstacleVec[i]))
+			{
+				m_pEnemyVec[j]->setLOS(false);
+			}
+
+			// Check Smell
+			if (CollisionManager::squaredRadiusCheck(m_pEnemyVec[j]->getPosition(), m_pEnemyVec[j]->getSmellRadius(), m_pPlayer))
+			{
+				m_pEnemyVec[j]->setSmell(true);
+			}
+		}
+
+		// Handle bullet collisions
+		for (unsigned int j = 0; j < m_pPlayer->getBullets().size(); j++)
+		{
+			// Bullet collision with obstacles
+			Bullet* bullet = m_pPlayer->getBullets()[j];
+			if (CollisionManager::AABBCheck(m_pObstacleVec[i], m_pPlayer->getBullets()[j]))
+			{
+				delete bullet;
+				m_pPlayer->getBullets()[j] = nullptr;
+				m_pPlayer->getBullets().erase(m_pPlayer->getBullets().begin() + 1 * j);
+				break;
+			}
+		}
+		m_pPlayer->getBullets().shrink_to_fit();
+	}
 }

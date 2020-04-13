@@ -296,6 +296,17 @@ glm::vec2 Util::rotateVectorRight(glm::vec2 pos, float angle)
 	return tempvec;
 }
 
+glm::vec2 Util::rotateVector(glm::vec2 vec, float angle)
+{
+	angle *= Util::Deg2Rad;
+	float c = cos(angle);
+	float s = sin(angle);
+	float x = (c * vec.x) - (s * vec.y);
+	float y = (s * vec.x) + (c * vec.y);
+	glm::vec2 newv = { x, y };
+	return newv;
+}
+
 void Util::DrawLine(glm::vec2 start, glm::vec2 end, glm::vec4 colour)
 {
 	int r = floor(colour.r * 255.0f);

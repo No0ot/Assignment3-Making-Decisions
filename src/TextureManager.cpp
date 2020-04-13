@@ -363,7 +363,7 @@ void TextureManager::animateFrames(int frame_width, int frame_height, const int 
 
 void TextureManager::playAnimation(
 	const std::string& sprite_sheet_name, Animation& animation, 
-	int x, int y, int& current_frame, float speed_factor, SDL_Renderer* renderer, 
+	int x, int y, float scalefactor, int& current_frame, float speed_factor, SDL_Renderer* renderer,
 	double angle, int alpha, bool centered, SDL_RendererFlip flip)
 {
 	const auto totalFrames = animation.frames.size();
@@ -402,8 +402,8 @@ void TextureManager::playAnimation(
 	destRect.h = textureHeight;
 
 	if (centered) {
-		const int xOffset = textureWidth * 0.5;
-		const int yOffset = textureHeight * 0.5;
+		const int xOffset = (textureWidth * 0.5) * scalefactor;
+		const int yOffset = (textureHeight * 0.5) * scalefactor;
 		destRect.x = x - xOffset;
 		destRect.y = y - yOffset;
 	}
@@ -411,6 +411,10 @@ void TextureManager::playAnimation(
 		destRect.x = x;
 		destRect.y = y;
 	}
+
+	// account for scale
+	destRect.w = destRect.w * scalefactor;
+	destRect.h = destRect.h * scalefactor;
 
 	SDL_SetTextureAlphaMod(m_textureMap[sprite_sheet_name].get(), alpha);
 	SDL_RenderCopyEx(renderer, m_textureMap[sprite_sheet_name].get(), &srcRect, &destRect, angle, nullptr, flip);

@@ -28,12 +28,12 @@ bool CollisionManager::squaredRadiusCheck(GameObject* object1, GameObject* objec
 
 			switch (object2->getType()) {
 			case TARGET:
-				std::cout << "Collision with Target!" << std::endl;
-				TheSoundManager::Instance()->playSound("yay", 0);
+				//std::cout << "Collision with Target!" << std::endl;
+				//TheSoundManager::Instance()->playSound("yay", 0);
 				break;
 			case OBSTACLE:
-				std::cout << "Collision with Obstacle!" << std::endl;
-				TheSoundManager::Instance()->playSound("thunder", 0);
+				//std::cout << "Collision with Obstacle!" << std::endl;
+				//TheSoundManager::Instance()->playSound("thunder", 0);
 				break;
 			default:
 				//std::cout << "Collision with unknown type!" << std::endl;
@@ -49,6 +49,18 @@ bool CollisionManager::squaredRadiusCheck(GameObject* object1, GameObject* objec
 		object2->setIsColliding(false);
 		return false;
 	}
+}
+
+bool CollisionManager::squaredRadiusCheck(glm::vec2 position, float radius, GameObject* object2)
+{
+	int halfHeights = radius + (object2->getHeight() * 0.5f);
+
+	if (CollisionManager::squaredDistance(position, object2->getPosition()) < (halfHeights * halfHeights))
+	{
+		return true;
+	}
+
+	return false;
 }
 
 bool CollisionManager::AABBCheck(GameObject* object1, GameObject* object2)
@@ -74,12 +86,12 @@ bool CollisionManager::AABBCheck(GameObject* object1, GameObject* object2)
 
 			switch (object2->getType()) {
 			case TARGET:
-				std::cout << "Collision with Target!" << std::endl;
-				TheSoundManager::Instance()->playSound("yay", 0);
+				///std::cout << "Collision with Target!" << std::endl;
+				//TheSoundManager::Instance()->playSound("yay", 0);
 				break;
 			case OBSTACLE:
-				std::cout << "Collision with Obstacle!" << std::endl;
-				TheSoundManager::Instance()->playSound("thunder", 0);
+				//std::cout << "Collision with Obstacle!" << std::endl;
+				//TheSoundManager::Instance()->playSound("thunder", 0);
 				break;
 			default:
 				//std::cout << "Collision with unknown type!" << std::endl;
@@ -186,19 +198,24 @@ bool CollisionManager::lineAABBCheck(Ship* object1, GameObject* object2)
 {
 	glm::vec2 lineStart = object1->getPosition();
 	glm::vec2 lineEnd = object1->getPosition() + object1->getCurrentDirection() * 100.0f;
-	// aabb
-	int boxWidth = object2->getWidth();
-	int halfBoxWidth = boxWidth * 0.5f;
-	int boxHeight = object2->getHeight();
-	int halfBoxHeight = boxHeight * 0.5f;
-	glm::vec2 boxStart = object2->getPosition() - glm::vec2(halfBoxWidth, halfBoxHeight);
+	return lineAABBCheck(lineStart, lineEnd, object2);
+}
 
-	if (lineRectCheck(lineStart, lineEnd, boxStart, boxWidth, boxHeight))
+bool CollisionManager::lineAABBCheck(glm::vec2 start, glm::vec2 end, GameObject* object)
+{
+	// aabb
+	int boxWidth = object->getWidth();
+	int halfBoxWidth = boxWidth * 0.5f;
+	int boxHeight = object->getHeight();
+	int halfBoxHeight = boxHeight * 0.5f;
+	glm::vec2 boxStart = object->getPosition() - glm::vec2(halfBoxWidth, halfBoxHeight);
+
+	if (lineRectCheck(start, end, boxStart, boxWidth, boxHeight))
 	{
-		switch (object2->getType()) {
+		switch (object->getType()) {
 		case OBSTACLE:
-			std::cout << "Collision with Obstacle!" << std::endl;
-			TheSoundManager::Instance()->playSound("thunder", 0);
+			//std::cout << "Collision with Obstacle!" << std::endl;
+			//TheSoundManager::Instance()->playSound("thunder", 0);
 
 
 			break;
@@ -250,16 +267,16 @@ bool CollisionManager::circleAABBCheck(GameObject* object1, GameObject* object2)
 
 			switch (object2->getType()) {
 			case TARGET:
-				std::cout << "Collision with Planet!" << std::endl;
-				TheSoundManager::Instance()->playSound("yay", 0);
+				//std::cout << "Collision with Planet!" << std::endl;
+				//TheSoundManager::Instance()->playSound("yay", 0);
 				break;
 			case OBSTACLE:
-				std::cout << "Collision with Mine!" << std::endl;
-				TheSoundManager::Instance()->playSound("thunder", 0);
+				//std::cout << "Collision with Mine!" << std::endl;
+				//TheSoundManager::Instance()->playSound("thunder", 0);
 				break;
 			case SHIP:
 				//std::cout << "Collision with Ship!" << std::endl;
-				TheSoundManager::Instance()->playSound("thunder", 0);
+				//TheSoundManager::Instance()->playSound("thunder", 0);
 
 				if ((attackVector.x > 0 && attackVector.y < 0) || (attackVector.x < 0 && attackVector.y < 0))
 					// top right or top left
