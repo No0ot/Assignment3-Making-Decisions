@@ -29,9 +29,11 @@ void Level1Scene::update()
 	{
 		if (m_pEnemyVec[enemy]->canDetect())
 		{
-			std::cout << "I've found you!" << std::endl;
 			m_pEnemyVec[enemy]->setTargetPosition(m_pPlayer->getPosition());
 		}
+		
+		glm::vec2 coverPosition = getNearestCoverPoint(m_pEnemyVec[enemy]->getPosition());
+		m_pEnemyVec[enemy]->setTargetPosition(coverPosition);
 	}
 	m_PtsBar.update();
 }
@@ -269,7 +271,7 @@ void Level1Scene::m_spawnEnemy()
 
 void Level1Scene::m_checkCollisions()
 {
-	// first, reset all feelers to false and LOS to true
+	// first, reset all variables to their initial states
 	for (unsigned int i = 0; i < m_pEnemyVec.size(); i++)
 	{
 		for (unsigned int j = 0; j < 3; j++)
@@ -278,6 +280,12 @@ void Level1Scene::m_checkCollisions()
 			m_pEnemyVec[i]->setLOS(true);
 		}
 	}
+	for (unsigned int i = 0; i < m_pTilesBehindCover.size(); i++)
+	{
+		m_pTilesBehindCover[i]->setBehindCover(false);
+	}
+	m_pTilesBehindCover.clear();
+	m_pTilesBehindCover.shrink_to_fit();
 
 	for (unsigned int i = 0; i < m_pObstacleVec.size(); i++)
 	{
@@ -335,5 +343,48 @@ void Level1Scene::m_checkCollisions()
 			}
 		}
 		m_pPlayer->getBullets().shrink_to_fit();
+
+		// Populate the tiles behind cover vector
+		for (unsigned int gridTile = 0; gridTile < m_pGrid.size(); gridTile++)
+		{
+			if (m_pGrid[gridTile]->getTileState() == CLOSED)
+			{
+				if (CollisionManager::lineAABBCheck(m_pGrid[gridTile]->getPosition(), m_pPlayer->getPosition(), m_pObstacleVec[i]))
+				{
+					m_pGrid[gridTile]->setBehindCover(true);
+					m_pTilesBehindCover.push_back(m_pGrid[gridTile]);
+				}
+			}
+		}
 	}
+}
+
+std::vector<Tile*>& Level1Scene::getTilesBehindCover()
+{
+	return m_pTilesBehindCover;
+}
+
+glm::vec2 Level1Scene::getNearestCoverPoint(const glm::vec2 position)
+{
+	if (m_pTilesBehindCover.empty())
+	{
+		std::cout << "There were no tiles behind cover!" << std::endl;
+		return position;
+	}
+	
+	glm::vec2 nearestCoverPoint = m_pTilesBehindCover[0]->getPosition();
+	float sqrmagFromCover = Util::squaredMagnitude(nearestCoverPoint - position);
+
+	for (unsigned int i = 1; i < m_pTilesBehindCover.size(); i++)
+	{
+		glm::vec2 currentTilePosition = m_pTilesBehindCover[i]->getPosition();
+		float sqrmagFromCurrent = Util::squaredMagnitude(currentTilePosition - position);
+		if (sqrmagFromCurrent < sqrmagFromCover)
+		{
+			nearestCoverPoint = currentTilePosition;
+			sqrmagFromCover = sqrmagFromCurrent;
+		}
+	}
+
+	return nearestCoverPoint;
 }

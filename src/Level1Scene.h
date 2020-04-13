@@ -29,12 +29,15 @@ public:
 	void m_spawnObstacles();
 	void m_spawnEnemy();
 	void m_checkCollisions();
+	std::vector<Tile*>& getTilesBehindCover();
+	glm::vec2 getNearestCoverPoint(const glm::vec2 position);
 private:
 	glm::vec2 m_mousePosition;
 	std::vector<Tile*> m_pGrid;
 	PlaneSprite* m_pPlaneSprite;
 	Player* m_pPlayer;
 	std::vector<Obstacle*> m_pObstacleVec;
+	std::vector<Tile*> m_pTilesBehindCover;
 	std::vector<Enemy*> m_pEnemyVec;
 
 	int m_iTotalPts;
