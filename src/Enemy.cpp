@@ -8,6 +8,7 @@ Enemy::~Enemy()
 
 void Enemy::update()
 {
+	m_checkBehaviourState();
 	m_checkSteeringState();
 	m_checkBounds();
 
@@ -191,6 +192,53 @@ void Enemy::m_buildAnimations()
 	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-5"));
 	m_pAnimations["bite"] = biteAnimation;
 }
+
+BehaviourState Enemy::getBehaviour()
+{
+	return m_Behaviour;
+}
+
+void Enemy::setBehaviour(BehaviourState state)
+{
+	m_Behaviour = state;
+}
+
+void Enemy::m_checkBehaviourState()
+{
+	switch (getBehaviour())
+	{
+	case BehaviourState::IDLE2:
+		//set target in level1Scene
+		setState(IDLE);
+		// wait 5 seconds than setBehaviour to PATROL
+		break;
+	case BehaviourState::PATROL:
+		//set target in level1Scene
+		setState(SEEK);
+		if (hasSmell() || hasLOS())
+			setBehaviour(BehaviourState::ASSAULT);
+		break;
+	case BehaviourState::ATTACK:
+		//execute a command to attack once fininsihed set behaviour to FLEE or ASSAULT again
+		break;
+	case BehaviourState::ASSAULT:
+		//set target in level1Scene
+		setState(SEEK);
+		//setState(ATTACK) once arrived
+		break;
+	case BehaviourState::FLEE:
+		//set target in level1Scene
+		setState(FLEE);
+		break;
+	case BehaviourState::COWER:
+		//set target in level1Scene
+		setState(SEEK);
+		//setState(IDLE) once arrived
+		//wait 5 seconds then set behaviour to patrol
+		break;
+	}
+}
+
 
 void Enemy::m_checkSteeringState()
 {

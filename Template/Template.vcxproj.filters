@@ -281,5 +281,8 @@
     <ClInclude Include="..\src\Ranged_Enemy.h">
       <Filter>Game Objects</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\BehaviourState.h">
+      <Filter>Enums</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
