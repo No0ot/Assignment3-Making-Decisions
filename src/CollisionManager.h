@@ -15,6 +15,7 @@ class CollisionManager
 public:
 	static int squaredDistance(glm::vec2 P1, glm::vec2 P2);
 	static bool squaredRadiusCheck(GameObject* object1, GameObject* object2);
+	static bool squaredRadiusCheck(glm::vec2 position, float radius, GameObject* object2);
 
 	static bool AABBCheck(GameObject* object1, GameObject* object2);
 

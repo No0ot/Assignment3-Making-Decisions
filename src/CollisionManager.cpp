@@ -51,6 +51,18 @@ bool CollisionManager::squaredRadiusCheck(GameObject* object1, GameObject* objec
 	}
 }
 
+bool CollisionManager::squaredRadiusCheck(glm::vec2 position, float radius, GameObject* object2)
+{
+	int halfHeights = radius + (object2->getHeight() * 0.5f);
+
+	if (CollisionManager::squaredDistance(position, object2->getPosition()) < (halfHeights * halfHeights))
+	{
+		return true;
+	}
+
+	return false;
+}
+
 bool CollisionManager::AABBCheck(GameObject* object1, GameObject* object2)
 {
 	// prepare relevant variables

@@ -22,12 +22,21 @@ public:
 	virtual void clean() override;
 
 	void move();
-	void accelerate();
-	void decelerate();
+	//void accelerate();
+	//void decelerate();
 	void m_checkBounds();
 	glm::vec2 getFeelerEndPosition(unsigned int feeler_number);
 	void setFeeler(unsigned int feeler_number, bool value);
 	void setTargetPosition(glm::vec2 target_position);
+	
+	// Detection variables
+	void setLOS(bool value);
+	bool hasLOS() const;
+	float getSmellRadius();
+	void setSmell(bool value);
+	bool hasSmell() const;
+	bool canDetect() const;
+
 private:
 	float m_fScaleFactor;
 	void m_buildAnimations();
@@ -38,8 +47,7 @@ private:
 
 	float m_maxSpeed;
 	float m_turnRate;
-	void m_turn(float direction, bool to_target = true);
-	void m_changeDirection();
+	void m_turn(float angle);
 	float m_currentHeading;
 	glm::vec2 m_currentDirection;
 	glm::vec2 m_targetPosition;
@@ -55,9 +63,8 @@ private:
 	void m_seek();
 	void m_flee();
 	void m_checkArrival();
-	void m_checkCollisions();
+	bool m_checkFeelers();
 	void m_arrive();
-	void m_avoid();
 
 	// ship movement
 	int m_turnFrame;
@@ -73,6 +80,8 @@ private:
 	float m_avoidDirection;
 	int m_avoidEndFrame;
 	int m_avoidEndFrameMax;
+	int m_numFramesAvoiding;
+	int m_maxFramesAvoiding;
 
 	// target info
 	float m_angleToTarget;
@@ -80,6 +89,10 @@ private:
 	float m_arrivalRadius;
 	float m_arrivalTarget;
 	glm::vec2 m_targetDirection;
+
+	bool m_hasLOS;
+	bool m_hasSmell;
+	float m_smellRadius;
 };
 
 

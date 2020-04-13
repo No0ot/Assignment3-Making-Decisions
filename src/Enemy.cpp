@@ -19,26 +19,25 @@ Enemy::Enemy() : m_currentAnimationState(WOLF_IDLE), m_iTotalHealth(50), m_iCurr
 	setType(GameObjectType::ENEMY);
 
 	m_currentHeading = rand()% 360 + 1;
-	m_changeDirection();
 	//setVelocity(m_currentDirection * 10.0f);
-	m_maxSpeed = 5.0f;
+	m_maxSpeed = 3.0f;
 	m_currentDirection = glm::vec2(1.0f, 0.0f);
-	m_turnRate = 5.0f;
-
+	m_turnRate = 3.0f;
 
 	//setAcceleration(glm::vec2(0.1f, 0.0f));
 	setState(SteeringState::SEEK);
 	setTargetPosition({ 0, 0 });
 	m_angleToTarget = 0.0f;
 	m_feelerAngle = 30.0f; 
-	m_feelerLength = 150.0f;
+	m_feelerLength = 50.0f;
 	m_distanceToTarget = 0.0f;
-	m_arrivalRadius = 175.0f;
-	m_arrivalTarget = 45.0f;
-	m_turnFrame = 0;
-	m_turnFrameMax = 3;
+	m_arrivalRadius = 100.0f;
+	m_arrivalTarget = 40.0f;
 	m_avoidEndFrame = 0;
-	m_avoidEndFrameMax = 21;
+	m_avoidEndFrameMax = 10;
+	m_numFramesAvoiding = 0;
+
+	m_smellRadius = 150.0f;
 }
 
 Enemy::~Enemy()
@@ -73,13 +72,18 @@ void Enemy::draw()
 	}
 
 	m_HealthBar.draw();
+
+	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle));
+	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * m_feelerLength);
+	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
+	Util::DrawCircle(getPosition(), getHeight() * m_fScaleFactor);
+	Util::DrawCircle(getPosition(), getSmellRadius());
 }
 
 void Enemy::update()
 {
 	m_checkSteeringState();
 	m_checkBounds();
-	move();
 
 	m_HealthBar.update();
 }
@@ -116,26 +120,27 @@ void Enemy::m_checkBounds()
 
 glm::vec2 Enemy::getFeelerEndPosition(unsigned int feeler_number)
 {
-	// Centre feeler 
-	glm::vec2 end = this->getPosition() + (m_currentDirection * m_feelerLength);
-	
-	// Left Feeler
-	if (feeler_number == 0)
+	glm::vec2 ret = { 0, 0 };
+
+	switch (feeler_number)
 	{
-		end = Util::rotateVectorLeft(end, m_feelerAngle);
+	case 0:
+		ret = getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle);
+		break;
+	case 1:
+		ret = getPosition() + m_currentDirection * m_feelerLength;
+		break;
+	case 2:
+		ret = getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle);
+		break;
 	}
 
-	// Right feeler
-	else if (feeler_number == 2)
-	{
-		end = Util::rotateVectorRight(end, m_feelerAngle);
-	}
-
-	return end;
+	return ret;
 }
 
 void Enemy::setFeeler(unsigned int feeler_number, bool value)
 {
+	//std::cout << feeler_number << " set to " << (value == false ? "false" : "true") << std::endl;
 	m_feelerCol[feeler_number] = value;
 }
 
@@ -144,49 +149,72 @@ void Enemy::setTargetPosition(glm::vec2 target_position)
 	m_targetPosition = target_position;
 }
 
+void Enemy::setLOS(bool value)
+{
+	m_hasLOS = value;
+}
+
+bool Enemy::hasLOS() const
+{
+	return m_hasLOS;
+}
+
+float Enemy::getSmellRadius()
+{
+	return m_smellRadius;
+}
+
+void Enemy::setSmell(bool value)
+{
+	m_hasSmell = value;
+}
+
+bool Enemy::hasSmell() const
+{
+	return m_hasSmell;
+}
+
+bool Enemy::canDetect() const
+{
+	if (hasLOS() || hasSmell())
+	{
+		return true;
+	}
+	return false;
+}
+
 void Enemy::move()
 {
+	setVelocity(m_currentDirection * m_maxSpeed);
 	setPosition(getPosition() + getVelocity());
 	//setVelocity(getVelocity() * 0.95f);
 	
 }
 
-void Enemy::accelerate()
-{
-	setAcceleration(glm::vec2{m_currentDirection.x * m_maxSpeed * 0.1, m_currentDirection.y * m_maxSpeed * 0.1});
-	this->setVelocity(this->getVelocity() + this->getAcceleration());
-	if (Util::magnitude(getVelocity()) > m_maxSpeed)
-	{
-		setVelocity(Util::normalize(getVelocity()) * m_maxSpeed);
-	}
-} 
+//void Enemy::accelerate()
+//{
+//	setAcceleration(glm::vec2{m_currentDirection.x * m_maxSpeed * 0.1, m_currentDirection.y * m_maxSpeed * 0.1});
+//	this->setVelocity(this->getVelocity() + this->getAcceleration());
+//	if (Util::magnitude(getVelocity()) > m_maxSpeed)
+//	{
+//		setVelocity(Util::normalize(getVelocity()) *  m_maxSpeed);
+//	}
+//} 
+//
+//void Enemy::decelerate()
+//{
+//	glm::vec2 newVel = this->getVelocity();
+//	newVel.x *= 0.9;
+//	newVel.y *= 0.9;
+//	this->setVelocity(newVel);
+//}
 
-void Enemy::decelerate()
+void Enemy::m_turn(float angle)
 {
-	glm::vec2 newVel = this->getVelocity();
-	newVel.x *= 0.9;
-	newVel.y *= 0.9;
-	this->setVelocity(newVel);
-}
-
-void Enemy::m_turn(float direction, bool to_target)
-{
-	if (to_target)
-	{
-		float angleDifference = abs(m_turnRate - m_angleToTarget);
-		m_currentHeading += ((angleDifference < m_turnRate) ? m_angleToTarget * 0.2 : m_turnRate) * direction;
-	}
-	else
-	{
-		m_currentHeading += m_turnRate * direction;
-	}
-	m_changeDirection();
-}
-
-void Enemy::m_changeDirection()
-{
-	const auto x = cos( (90 + m_currentHeading) * Util::Deg2Rad);
-	const auto y = sin( (90 + m_currentHeading) * Util::Deg2Rad);
+	std::cout << "m_turn(" << angle << ") called!" << std::endl;
+	m_currentHeading += angle;
+	const auto x = cos((90 + m_currentHeading) * Util::Deg2Rad);
+	const auto y = sin((90 + m_currentHeading) * Util::Deg2Rad);
 	m_currentDirection = glm::vec2(x, y);
 }
 
@@ -240,34 +268,45 @@ void Enemy::m_buildAnimations()
 
 void Enemy::m_checkSteeringState()
 {
-	switch (getState())
+	if (m_checkFeelers())
 	{
-	case SteeringState::IDLE:
-		setVelocity({ 0, 0 });
-		break;
-	case SteeringState::SEEK:
-		accelerate();
-		m_seek();
-		m_reorient();
-		m_checkArrival();
-		break;
-	case SteeringState::ARRIVE:
-		m_seek();
-		m_reorient();
-		m_arrive();
-		m_checkArrival();
-		break;
-	case SteeringState::AVOID:
-		m_seek();
-		m_avoid();
-		m_arrive();
-		m_checkArrival();
-		break;
-	case SteeringState::FLEE:
-		accelerate();
-		m_flee();
-		m_reorient();
-		break;
+
+	}
+	else
+	{
+		switch (getState())
+		{
+		case SteeringState::IDLE:
+			//decelerate();
+			//move();
+			break;
+		case SteeringState::SEEK:
+			//std::cout << "Seeking! x: " << getVelocity().x << " y: " << getVelocity().y << std::endl;
+			//accelerate();
+			m_seek();
+			m_reorient();
+			m_checkArrival();
+			move();
+			break;
+		case SteeringState::ARRIVE:
+			//std::cout << "Arriving!" << std::endl;
+			m_seek();
+			m_reorient();
+			//m_arrive();
+			m_checkArrival();
+			move();
+			break;
+		case SteeringState::AVOID:
+			std::cout << "IN AVOID STATE! BAD!" << std::endl;
+			break;
+		case SteeringState::FLEE:
+			//std::cout << "Fleeing!" << std::endl;
+			//accelerate();
+			m_flee();
+			m_reorient();
+			move();
+			break;
+		}
 	}
 }
 
@@ -281,11 +320,7 @@ void Enemy::m_seek()
 void Enemy::m_flee()
 {
 	glm::vec2 steeringVelocity;
-	glm::vec2 nearCorner = { getPosition().x < getTargetPosition().x ? getWidth() * 0.75 : 800 - getWidth() * 0.75, getPosition().y < getTargetPosition().y ? getWidth() * 0.75 : 600 - getWidth() * 0.75 };
-	float tx = (abs(nearCorner.x - getPosition().x) / abs(nearCorner.x - getTargetPosition().x));
-	float ty = (abs(nearCorner.y - getPosition().y) / abs(nearCorner.y - getTargetPosition().y));
-	steeringVelocity.x = Util::lerp(getPosition().x - getTargetPosition().x, nearCorner.x - getPosition().x, tx < ty ? 1 - tx : 1 - ty);
-	steeringVelocity.y = Util::lerp(getPosition().y - getTargetPosition().y, nearCorner.y - getPosition().y, tx < ty ? 1 - tx : 1 - ty);
+	steeringVelocity = getPosition() - getTargetPosition();
 	m_targetDirection = Util::normalize(steeringVelocity);
 }
 
@@ -300,62 +335,88 @@ void Enemy::m_checkArrival()
 	{
 		this->setState(ARRIVE);
 	}
+	else
+	{
+		this->setState(SEEK);
+	}
 }
 
-void Enemy::m_checkCollisions()
+bool Enemy::m_checkFeelers()
 {
+	if (m_feelerCol[0] == false && m_feelerCol[1] == false && m_feelerCol[2] == false) // If none of the feelers are feeling anything (this is determined in the game scene collisions function)
+	{
+		if (m_avoidEndFrame >= m_avoidEndFrameMax)
+		{
+			m_numFramesAvoiding = 0;
+			return false;
+		}
+		else
+		{
+			m_avoidEndFrame++;
+			m_numFramesAvoiding++;
+			if (m_avoidDirection == 0.0f)
+			{
+				m_turn(m_turnRate);
+			}
+			else
+			{
+				m_turn(m_turnRate * m_avoidDirection);
+			}
+		}
+	}
+	else
+	{
+		m_avoidEndFrame = 0;
+		if (m_numFramesAvoiding >= m_maxFramesAvoiding)
+		{
+			std::cout << "Argh! I can't find a way past this!" << std::endl;
+			m_turn(m_turnRate * 0.5);
+		}
+		else
+		{
+			m_numFramesAvoiding++;
+
+			if ((m_feelerCol[0] == true && m_feelerCol[1] == false && m_feelerCol[2] == false) ||
+				(m_feelerCol[0] == false && m_feelerCol[1] == true && m_feelerCol[2] == false) ||
+				(m_feelerCol[0] == true && m_feelerCol[1] == true && m_feelerCol[2] == false) ||
+				(m_feelerCol[0] == true && m_feelerCol[1] == false && m_feelerCol[2] == true) ||
+				(m_feelerCol[0] == true && m_feelerCol[1] == true && m_feelerCol[2] == true))
+			{
+				m_avoidDirection = -1.0;
+				m_turn(m_turnRate * m_avoidDirection);
+			}
+			else if ((m_feelerCol[0] == false && m_feelerCol[1] == false && m_feelerCol[2] == true) ||
+				(m_feelerCol[0] == false && m_feelerCol[1] == true && m_feelerCol[2] == true))
+			{
+				m_avoidDirection = 1.0;
+				m_turn(m_turnRate * m_avoidDirection);
+			}
+		}
+	}
+	return true;
 }
 
 void Enemy::m_arrive()
 {
-	if (m_distanceToTarget <= m_arrivalRadius)
-	{
-		decelerate();
-	}
-	else
-	{
-		accelerate();
-	}
-}
-
-void Enemy::m_avoid()
-{
-	if (m_avoidDirection < 0)
-	{
-		m_turn(1.0f);
-	}
-	else if (m_avoidDirection > 0)
-	{
-		m_turn(-1.0f);
-	}
+	//if (m_distanceToTarget <= m_arrivalRadius)
+	//{
+	//	decelerate();
+	//}
+	//else
+	//{
+	//	accelerate();
+	//}
 }
 
 void Enemy::m_reorient()
 {
-	if (m_feelerCol[0] == false && m_feelerCol[1] == false && m_feelerCol[2] == false)
+	m_angleToTarget = Util::signedAngle(m_currentDirection, m_targetDirection);
+	if (m_angleToTarget > 0.0f)
 	{
-		m_angleToTarget = Util::signedAngle(m_currentDirection, m_targetDirection);
-		if (m_angleToTarget > 0.0f)
-			m_turn(1.0f);
-		else if (m_angleToTarget < 0.0f)
-			m_turn(-1.0f);
+		m_turn(m_angleToTarget < m_turnRate ? m_angleToTarget : m_turnRate);
 	}
-	else if (m_feelerCol[0] == true || m_feelerCol[1] == true || m_feelerCol[2] == true)
+	else if (m_angleToTarget < 0.0f)
 	{
-		m_avoidEndFrame = 0;
-
-		if ((m_feelerCol[0] == true && m_feelerCol[1] == false && m_feelerCol[2] == false) ||
-			(m_feelerCol[0] == false && m_feelerCol[1] == true && m_feelerCol[2] == false) ||
-			(m_feelerCol[0] == true && m_feelerCol[1] == true && m_feelerCol[2] == false) ||
-			(m_feelerCol[0] == true && m_feelerCol[1] == false && m_feelerCol[2] == true) ||
-			(m_feelerCol[0] == true && m_feelerCol[1] == true && m_feelerCol[2] == true))
-		{
-			m_turn(-1.0, false);
-		}
-		else if ((m_feelerCol[0] == false && m_feelerCol[1] == false && m_feelerCol[2] == true) ||
-			(m_feelerCol[0] == false && m_feelerCol[1] == true && m_feelerCol[2] == true))
-		{
-			m_turn(1.0, false);
-		}
+		m_turn(m_angleToTarget > -m_turnRate ? m_angleToTarget : -m_turnRate);
 	}
 }
