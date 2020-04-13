@@ -129,10 +129,10 @@
     <ClCompile Include="..\src\HealthBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\RangedEnemy.cpp">
+    <ClCompile Include="..\src\Melee_Enemy.cpp">
       <Filter>Game Objects</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Melee_Enemy.cpp">
+    <ClCompile Include="..\src\Ranged_Enemy.cpp">
       <Filter>Game Objects</Filter>
     </ClCompile>
   </ItemGroup>
@@ -275,10 +275,10 @@
     <ClInclude Include="..\src\HealthBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\RangedEnemy.h">
+    <ClInclude Include="..\src\Melee_Enemy.h">
       <Filter>Game Objects</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Melee_Enemy.h">
+    <ClInclude Include="..\src\Ranged_Enemy.h">
       <Filter>Game Objects</Filter>
     </ClInclude>
   </ItemGroup>

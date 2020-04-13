@@ -1,8 +1,8 @@
-#include "Melee_Enemy.h"
+#include "Ranged_Enemy.h"
 #include "TextureManager.h"
 #include "Game.h"
 
-Melee_Enemy::Melee_Enemy()
+Ranged_Enemy::Ranged_Enemy()
 {
 	m_currentAnimationState = WOLF_IDLE;
 	m_iTotalHealth = 50;
@@ -47,7 +47,7 @@ Melee_Enemy::Melee_Enemy()
 	m_smellRadius = 150.0f;
 }
 
-void Melee_Enemy::draw()
+void Ranged_Enemy::draw()
 {
 	const int xComponent = getPosition().x;
 	const int yComponent = getPosition().y;
