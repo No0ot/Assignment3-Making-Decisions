@@ -6,7 +6,6 @@
 class Ranged_Enemy final : public Enemy
 {
 private:
-	WolfAnimationState m_currentAnimationState;
 public:
 	Ranged_Enemy();
 	void draw();

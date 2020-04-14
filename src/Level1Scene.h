@@ -32,7 +32,7 @@ public:
 	void m_checkCollisions();
 	std::vector<Tile*>& getTilesBehindCover();
 	glm::vec2 getNearestPatrolPoint(const glm::vec2 position);
-	glm::vec2 getRandomPatrolPoint();
+	glm::vec2 getRandomPatrolPoint(int number);
 	glm::vec2 getNearestCoverPoint(const glm::vec2 position);
 	void updateEnemyTargets();
 private:
