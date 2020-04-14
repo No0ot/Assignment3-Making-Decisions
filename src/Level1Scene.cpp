@@ -33,18 +33,20 @@ void Level1Scene::update()
 {
 	updateDisplayList();
 	m_pPlayer->update();
+	for (unsigned int j = 0; j < m_pEnemyVec.size(); j++)
+	{
+		m_pEnemyVec[j]->update();
+	}
 	updateEnemyTargets();
 	m_checkCollisions();
-	/*for (unsigned int enemy = 0; enemy < m_pEnemyVec.size(); enemy++)
+	for (unsigned int j = 0; j < m_pEnemyVec.size(); j++)
 	{
-		if (m_pEnemyVec[enemy]->canDetect())
+		float distance = Util::distance(m_pEnemyVec[j]->getPosition(), m_pPlayer->getPosition());
+		if (m_pEnemyVec[j]->getBehaviour() == BehaviourState::FLEE && distance > 450)
 		{
-			m_pEnemyVec[enemy]->setTargetPosition(m_pPlayer->getPosition());
+			m_pEnemyVec[j]->setBehaviour(BehaviourState::COWER);
 		}
-		
-		glm::vec2 coverPosition = getNearestCoverPoint(m_pEnemyVec[enemy]->getPosition());
-		m_pEnemyVec[enemy]->setTargetPosition(coverPosition);*/
-//	}
+	}
 	m_PtsBar.update();
 }
 
@@ -78,6 +80,7 @@ void Level1Scene::handleEvents()
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 			{
+			m_pPlayer->setPosition(glm::vec2{ m_mousePosition.x, m_mousePosition.y });
 			}
 			break;
 		case SDL_KEYDOWN:
@@ -172,7 +175,7 @@ void Level1Scene::start()
 {
 	m_buildGrid();
 	m_mapTiles();
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 12; i++)
 	{
 		m_pObstacleVec.push_back(new Obstacle());
 		addChild(m_pObstacleVec.back());
@@ -183,13 +186,13 @@ void Level1Scene::start()
 	{
 		m_pEnemyVec.push_back(new Melee_Enemy());
 		addChild(m_pEnemyVec.back());
+		m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
 	}
 	for (int i = 0; i < 4; i++)
 	{
 		m_pPatrolPoints.push_back(new PatrolPoint());
 		m_spawnObject(m_pPatrolPoints.back());
 		m_pPatrolPoints.back()->getTile()->setTileState(GOAL);
-
 	}
 
 	m_pPlayer = new Player();
@@ -291,7 +294,7 @@ void Level1Scene::m_checkCollisions()
 		for (unsigned int j = 0; j < 3; j++)
 		{
 			m_pEnemyVec[i]->setFeeler(j, false);
-			m_pEnemyVec[i]->setLOS(true);
+			m_pEnemyVec[i]->setLOS(false);
 		}
 	}
 	for (unsigned int i = 0; i < m_pTilesBehindCover.size(); i++)
@@ -332,11 +335,24 @@ void Level1Scene::m_checkCollisions()
 			}
 
 			// Check LOS
-			if (CollisionManager::lineAABBCheck(m_pEnemyVec[j]->getPosition(), m_pPlayer->getPosition(), m_pObstacleVec[i]))
 			{
-				m_pEnemyVec[j]->setLOS(false);
-			
-				//m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
+				glm::vec2 enemyPos = m_pEnemyVec[j]->getPosition();
+				glm::vec2 playerPos = m_pPlayer->getPosition();
+				glm::vec2 dirEtoP = playerPos - enemyPos;
+				glm::vec2 dirHofE = m_pEnemyVec[j]->getDirection();
+				float angle = Util::angle(dirHofE, dirEtoP);
+				float FOV = m_pEnemyVec[j]->getFOV();
+
+				if (angle < FOV && angle > -FOV)
+				{ // Check the angle between the enemy's heading and the player - the enemy cannot see the player if the player is behind it
+					m_pEnemyVec[j]->setLOS(true);
+					//std::cout << "You're in my field of vision" << std::endl;
+					if (CollisionManager::lineAABBCheck(enemyPos, playerPos, m_pObstacleVec[i]))
+					{ // NOW check whether there's an obstacle in the way
+						//std::cout << " I see you!" << std::endl; // this is backwards
+						m_pEnemyVec[j]->setLOS(false);
+					}
+				}
 			}
 	
 
@@ -360,6 +376,30 @@ void Level1Scene::m_checkCollisions()
 				m_pPlayer->getBullets()[j] = nullptr;
 				m_pPlayer->getBullets().erase(m_pPlayer->getBullets().begin() + 1 * j);
 				break;
+			}
+			// Bullet collision with enemies
+			else
+			{
+				for (unsigned int enemy = 0; enemy < m_pEnemyVec.size(); enemy++)
+				{
+					if (CollisionManager::circleAABBCheck(m_pEnemyVec[enemy], m_pPlayer->getBullets()[j]))
+					{
+						// deal damage to the enemy
+						if (m_pEnemyVec[enemy]->changeHealth(-m_pPlayer->getBullets()[j]->getDamage()))
+						{
+							removeChildByIndex(m_pEnemyVec[enemy]->DisplayListIndexInScene);
+							m_iCurrentPts += m_pEnemyVec[enemy]->getPtsValue();
+							delete m_pEnemyVec[enemy];
+							m_pEnemyVec[enemy] = nullptr;
+							m_pEnemyVec.erase(m_pEnemyVec.begin() + enemy);
+						}
+						
+						// delete the bullet
+						delete bullet;
+						m_pPlayer->getBullets()[j] = nullptr;
+						m_pPlayer->getBullets().erase(m_pPlayer->getBullets().begin() + 1 * j);
+					}
+				}
 			}
 		}
 		m_pPlayer->getBullets().shrink_to_fit();
@@ -399,7 +439,7 @@ glm::vec2 Level1Scene::getNearestCoverPoint(const glm::vec2 position)
 	{
 		glm::vec2 currentTilePosition = m_pTilesBehindCover[i]->getPosition();
 		float sqrmagFromCurrent = Util::squaredMagnitude(currentTilePosition - position);
-		if (sqrmagFromCurrent < sqrmagFromCover)
+		if (sqrmagFromCurrent > sqrmagFromCover)
 		{
 			nearestCoverPoint = currentTilePosition;
 			sqrmagFromCover = sqrmagFromCurrent;
@@ -424,7 +464,7 @@ glm::vec2 Level1Scene::getNearestPatrolPoint(const glm::vec2 position)
 	{
 		glm::vec2 currentTilePosition = m_pPatrolPoints[i]->getPosition();
 		float sqrmagFromCurrent = Util::squaredMagnitude(currentTilePosition - position);
-		if (sqrmagFromCurrent < sqrmagFromCover)
+		if (sqrmagFromCurrent > sqrmagFromCover)
 		{
 			nearestPatrolPoint = currentTilePosition;
 			sqrmagFromCover = sqrmagFromCurrent;
@@ -434,11 +474,10 @@ glm::vec2 Level1Scene::getNearestPatrolPoint(const glm::vec2 position)
 	return nearestPatrolPoint;
 }
 
-glm::vec2 Level1Scene::getRandomPatrolPoint()
+glm::vec2 Level1Scene::getRandomPatrolPoint(int number)
 {
-	int temp = rand() % 4;
-	RandomPatrolPoint = m_pPatrolPoints[temp]->getPosition();
-	return RandomPatrolPoint;
+	
+	return m_pPatrolPoints[number]->getPosition();
 }
 
 void Level1Scene::updateEnemyTargets()
@@ -449,19 +488,13 @@ void Level1Scene::updateEnemyTargets()
 		switch (m_pEnemyVec[j]->getBehaviour())
 		{
 		case BehaviourState::PATROL:
-			m_pEnemyVec[j]->setTargetPosition(getNearestPatrolPoint(m_pEnemyVec[j]->getPosition()));
+			m_pEnemyVec[j]->setTargetPosition(getRandomPatrolPoint(m_pEnemyVec[j]->getMySpecialNumber()));
 			break;
-		case BehaviourState::PATROL2:
-			m_pEnemyVec[j]->setTargetPosition(m_pPatrolPoints[m_pEnemyVec[j]->randomnum]->getPosition());
-			break;
-		case BehaviourState::ASSAULT:
-			m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
-			break;
-		case BehaviourState::FLEE:
+		case BehaviourState::ATTACK:
 			m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
 			break;
 		case BehaviourState::COWER:
-			m_pEnemyVec[j]->setTargetPosition(getNearestCoverPoint(m_pEnemyVec[j]->getPosition()));
+			m_pEnemyVec[j]->setTargetPosition(getNearestCoverPoint(m_pPlayer->getPosition()));
 			break;
 		}
 

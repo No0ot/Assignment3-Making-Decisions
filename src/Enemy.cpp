@@ -1,17 +1,14 @@
 #include "Enemy.h"
 #include "Game.h"
 
-Enemy::Enemy() {}
+Enemy::Enemy() : m_Stateframes(0), m_arrived(false) {}
 
 Enemy::~Enemy()
 = default;
 
 void Enemy::update()
 {
-	if (m_iCurrentHealth <= m_iTotalHealth / 2)
-	{
-		setBehaviour(BehaviourState::FLEE);
-	}
+	m_checkHealth();
 	m_checkBehaviourState();
 	m_checkSteeringState();
 	m_checkBounds();
@@ -120,6 +117,36 @@ bool Enemy::canDetect() const
 	return false;
 }
 
+float Enemy::getFOV() const
+{
+	return m_fFOV;
+}
+
+glm::vec2 Enemy::getDirection() const
+{
+	return m_currentDirection;
+}
+
+int Enemy::getDamage()
+{
+	return m_iDamage;
+}
+
+bool Enemy::changeHealth(int change)
+{
+	m_iCurrentHealth += change;
+	if (m_iCurrentHealth <= 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+int Enemy::getPtsValue()
+{
+	return m_iPtsValue;
+}
+
 void Enemy::move()
 {
 	setVelocity(m_currentDirection * m_maxSpeed);
@@ -182,60 +209,83 @@ void Enemy::m_checkBehaviourState()
 	switch (getBehaviour())
 	{
 	case BehaviourState::IDLE2:
-		//set target in level1Scene
-		setState(IDLE);
-		m_Stateframes = 0;
-		m_StateframesMax = 120;
-		//execute a command to attack once fininsihed set behaviour to FLEE or ASSAULT again
-		for (m_Stateframes; m_Stateframes < m_StateframesMax; m_Stateframes++)
-		{
-			setState(IDLE);
-		}
-		setBehaviour(BehaviourState::PATROL);
-		// wait 5 seconds than setBehaviour to PATROL
+		m_idle();
 		break;
 	case BehaviourState::PATROL:
-		setState(SEEK);
-		m_maxSpeed = 3.0f;
-		
-		/*if (canDetect())
-			setBehaviour(BehaviourState::ASSAULT);*/
-		break;
-	case BehaviourState::PATROL2:
-		setState(SEEK);
-		m_maxSpeed = 3.0f;
-		if (canDetect())
-			setBehaviour(BehaviourState::ASSAULT);
+		m_patrol();
 		break;
 	case BehaviourState::ATTACK:
-		m_Stateframes = 0;
-		m_StateframesMax = 120;
-		//execute a command to attack once fininsihed set behaviour to FLEE or ASSAULT again
-		for (m_Stateframes; m_Stateframes < m_StateframesMax; m_Stateframes++)
-		{
-			setState(IDLE);
-		}
-		setBehaviour(BehaviourState::IDLE2);
-		break;
-	case BehaviourState::ASSAULT:
-		m_maxSpeed = 5.0f;
-		setState(SEEK);
-		//setState(ATTACK) once arrived
-
-		break;
-	case BehaviourState::FLEE:
-		//set target in level1Scene
-		setState(FLEE);
+		m_attack();
 		break;
 	case BehaviourState::COWER:
-		//set target in level1Scene
-		setState(SEEK);
-		//setState(IDLE) once arrived
-		//wait 5 seconds then set behaviour to patrol
+		m_cower();
 		break;
 	}
 }
 
+void Enemy::m_idle()
+{
+	setState(IDLE);
+	//m_Stateframes = 0;
+	m_StateframesMax = 120;
+	if (m_Stateframes >= m_StateframesMax)
+	{
+		m_Stateframes = 0;
+	setBehaviour(BehaviourState::PATROL);
+	}
+	m_Stateframes++;
+
+}
+
+void Enemy::m_patrol()
+{
+	setState(SEEK);
+	
+	m_maxSpeed = 2.0f;
+	if (m_arrived)
+	{
+		m_specialnumber = rand() % 4;
+	}
+	if (canDetect())
+		setBehaviour(BehaviourState::ATTACK);
+}
+
+void Enemy::m_attack()
+{
+	setState(SEEK);
+	m_maxSpeed = 3.0f;
+	if (m_arrived)
+	{
+	//m_bite();
+		setBehaviour(BehaviourState::IDLE2);
+	}
+}
+
+void Enemy::m_bite()
+{
+
+
+}
+
+void Enemy::m_cower()
+{
+	setState(SEEK);
+	m_maxSpeed = 2.0f;
+	if (m_arrived)
+	{
+		setBehaviour(BehaviourState::IDLE2);
+	}
+
+}
+
+void Enemy::m_checkHealth()
+{
+	if (m_iCurrentHealth <= m_iTotalHealth / 2 && canCower)
+	{
+		setBehaviour(BehaviourState::COWER);
+		canCower = false;
+	}
+}
 
 void Enemy::m_checkSteeringState()
 {
@@ -300,31 +350,19 @@ void Enemy::m_checkArrival()
 	m_distanceToTarget = Util::distance(getPosition(), getTargetPosition());
 	if (m_distanceToTarget <= m_arrivalTarget)
 	{
-		switch (getBehaviour())
-		{
-		case BehaviourState::COWER:
-			this->setState(IDLE);
-			break;
-		case BehaviourState::ASSAULT:
-			this->setBehaviour(BehaviourState::ATTACK);
-			this->setState(IDLE);
-			break;
-		case BehaviourState::PATROL:
-			this->setBehaviour(BehaviourState::PATROL2);	// needs to get new target here
-			break;
-		case BehaviourState::PATROL2:
+		m_arrived = true;
 			randomnum = rand() % 4;
-			break;
-		}
 
 	}
 	else if (m_distanceToTarget <= m_arrivalRadius)
 	{
 		this->setState(ARRIVE);
+
 	}
 	else
 	{
-		this->setState(SEEK);
+		m_arrived = false;
+		//this->setState(SEEK);
 	}
 }
 
@@ -407,4 +445,14 @@ void Enemy::m_reorient()
 	{
 		m_turn(m_angleToTarget > -m_turnRate ? m_angleToTarget : -m_turnRate);
 	}
+}
+
+WolfAnimationState Enemy::getAnimState()
+{
+	return m_currentAnimationState;
+}
+
+void Enemy::setAnimState(WolfAnimationState state)
+{
+	m_currentAnimationState = state;
 }

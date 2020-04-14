@@ -32,6 +32,9 @@ public:
 	BehaviourState getBehaviour();
 	void setBehaviour(BehaviourState state);
 	void setNextPatrolPoint(glm::vec2 target_position);
+	WolfAnimationState getAnimState();
+	void setAnimState(WolfAnimationState state);
+	int getMySpecialNumber() { return m_specialnumber; }
 
 	// Detection variables
 	void setLOS(bool value);
@@ -40,13 +43,24 @@ public:
 	void setSmell(bool value);
 	bool hasSmell() const;
 	bool canDetect() const;
+	float getFOV() const;
+	glm::vec2 getDirection() const;
+	
+	// Damage variables
+	int getDamage();
+	bool changeHealth(int change);
+	int getPtsValue();
+
 	int randomnum;
+	unsigned int DisplayListIndexInScene;
 protected:
+	bool canCower;
+	bool m_arrived;
 	float m_fScaleFactor;
 	
 
 	SpriteSheet* m_pSpriteSheet;
-	
+	WolfAnimationState m_currentAnimationState;
 	BehaviourState m_Behaviour;
 	std::unordered_map<std::string, Animation> m_pAnimations;
 
@@ -67,6 +81,12 @@ protected:
 	// DEcision making Functions
 
 	void m_checkBehaviourState();
+	void m_idle();
+	void m_patrol();
+	void m_attack();
+	void m_bite();
+	void m_cower();
+	void m_checkHealth();
 
 	// steering behaviour functions
 	void m_checkSteeringState();
@@ -97,15 +117,22 @@ protected:
 	int m_StateframesMax;
 
 	// target info
+	int m_specialnumber;
 	float m_angleToTarget;
 	float m_distanceToTarget;
 	float m_arrivalRadius;
 	float m_arrivalTarget;
 	glm::vec2 m_targetDirection;
 
+	// detection info
 	bool m_hasLOS;
 	bool m_hasSmell;
 	float m_smellRadius;
+	float m_fFOV;
+
+	// damage info
+	int m_iDamage;
+	int m_iPtsValue;
 };
 
 #endif /* defined (__ENEMY__) */

@@ -9,6 +9,7 @@ Melee_Enemy::Melee_Enemy()
 	m_iCurrentHealth = 50;
 	m_HealthBar = new HealthBar(*this, m_iCurrentHealth, m_iTotalHealth, 0.5f, { 255, 0, 0, 192 });
 	m_fScaleFactor = 1.2f;
+	canCower = true;
 
 	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/wolf.txt",
 		"../Assets/sprites/wolf.png", "wolfspritesheet", TheGame::Instance()->getRenderer());
@@ -47,7 +48,11 @@ Melee_Enemy::Melee_Enemy()
 	m_numFramesAvoiding = 0;
 	m_maxFramesAvoiding = 30;
 
-	m_smellRadius = 150.0f;
+	m_smellRadius = 100.0f;
+	m_fFOV = 40;
+
+	m_iDamage = 10;
+	m_iPtsValue = 25;
 }
 
 void Melee_Enemy::draw()
@@ -131,12 +136,4 @@ void Melee_Enemy::m_buildAnimations()
 	m_pAnimations["bite"] = biteAnimation;
 }
 
-WolfAnimationState Melee_Enemy::getAnimState()
-{
-	return m_currentAnimationState;
-}
 
-void Melee_Enemy::setAnimState(WolfAnimationState state)
-{
-	m_currentAnimationState = state;
-}

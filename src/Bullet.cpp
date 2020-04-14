@@ -2,7 +2,7 @@
 #include "Game.h"
 #include "Util.h"
 
-Bullet::Bullet(glm::vec2 position, float heading) 
+Bullet::Bullet(glm::vec2 position, float heading, int damage) : m_iDamage(damage)
 {
 	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/atlas.txt",
 		"../Assets/sprites/atlas.png", "spritesheet", TheGame::Instance()->getRenderer());
@@ -69,6 +69,11 @@ bool Bullet::m_checkBounds()
 	else
 		return false;
 
+}
+
+int Bullet::getDamage()
+{
+	return m_iDamage;
 }
 
 void Bullet::buildsprite()
