@@ -10,7 +10,7 @@
 class Bullet : public DisplayObject
 {
 public:
-	Bullet(glm::vec2 position, float heading);
+	Bullet(glm::vec2 position, float heading, int damage);
 	~Bullet();
 
 	// DisplayObject LifeCycle Functions
@@ -20,6 +20,7 @@ public:
 
 	void spawn();
 	bool m_checkBounds();
+	int getDamage();
 private:
 	void m_changeDirection();
 	void buildsprite();
@@ -29,6 +30,7 @@ private:
 	float m_currentHeading;
 	glm::vec2 m_currentDirection;
 	std::unordered_map<std::string, Animation> m_pAnimations;
+	int m_iDamage;
 };
 
 #endif /* defined (__CAT__) */

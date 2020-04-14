@@ -30,6 +30,9 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_i
 	bulletspawnPos = glm::vec2(getPosition().x + 64, getPosition().y + 26);
 	directionvector = { bulletspawnPos.x - getPosition().x, bulletspawnPos.y - getPosition().y };
 	mag = Util::magnitude(directionvector);
+
+	m_iRangedDamage = 10;
+	m_iMeleeDamage = 50;
 }
 
 Player::~Player()
@@ -207,7 +210,7 @@ void Player::melee()
 
 void Player::shoot()
 {
-	m_pBulletvec.push_back(new Bullet(bulletspawnPos, getHeading()));
+	m_pBulletvec.push_back(new Bullet(bulletspawnPos, getHeading(), m_iRangedDamage));
 	//m_pBulletvec.back()->spawn();
 }
 

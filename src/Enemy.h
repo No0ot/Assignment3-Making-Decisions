@@ -40,7 +40,16 @@ public:
 	void setSmell(bool value);
 	bool hasSmell() const;
 	bool canDetect() const;
+	float getFOV() const;
+	glm::vec2 getDirection() const;
+	
+	// Damage variables
+	int getDamage();
+	bool changeHealth(int change);
+	int getPtsValue();
+
 	int randomnum;
+	unsigned int DisplayListIndexInScene;
 protected:
 	float m_fScaleFactor;
 	
@@ -103,9 +112,15 @@ protected:
 	float m_arrivalTarget;
 	glm::vec2 m_targetDirection;
 
+	// detection info
 	bool m_hasLOS;
 	bool m_hasSmell;
 	float m_smellRadius;
+	float m_fFOV;
+
+	// damage info
+	int m_iDamage;
+	int m_iPtsValue;
 };
 
 #endif /* defined (__ENEMY__) */

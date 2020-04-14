@@ -120,6 +120,36 @@ bool Enemy::canDetect() const
 	return false;
 }
 
+float Enemy::getFOV() const
+{
+	return m_fFOV;
+}
+
+glm::vec2 Enemy::getDirection() const
+{
+	return m_currentDirection;
+}
+
+int Enemy::getDamage()
+{
+	return m_iDamage;
+}
+
+bool Enemy::changeHealth(int change)
+{
+	m_iCurrentHealth += change;
+	if (m_iCurrentHealth <= 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+int Enemy::getPtsValue()
+{
+	return m_iPtsValue;
+}
+
 void Enemy::move()
 {
 	setVelocity(m_currentDirection * m_maxSpeed);

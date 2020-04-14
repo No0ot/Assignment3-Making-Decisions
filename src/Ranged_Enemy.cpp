@@ -43,7 +43,11 @@ Ranged_Enemy::Ranged_Enemy()
 	m_avoidEndFrameMax = 10;
 	m_numFramesAvoiding = 0;
 
-	m_smellRadius = 150.0f;
+	m_smellRadius = 100.0f;
+	m_fFOV = 40;
+
+	m_iDamage = 10;
+	m_iPtsValue = 50;
 }
 
 void Ranged_Enemy::draw()

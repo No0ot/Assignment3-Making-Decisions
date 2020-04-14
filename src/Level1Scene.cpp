@@ -183,6 +183,7 @@ void Level1Scene::start()
 	{
 		m_pEnemyVec.push_back(new Melee_Enemy());
 		addChild(m_pEnemyVec.back());
+		m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
 	}
 	for (int i = 0; i < 4; i++)
 	{
@@ -291,7 +292,7 @@ void Level1Scene::m_checkCollisions()
 		for (unsigned int j = 0; j < 3; j++)
 		{
 			m_pEnemyVec[i]->setFeeler(j, false);
-			m_pEnemyVec[i]->setLOS(true);
+			m_pEnemyVec[i]->setLOS(false);
 		}
 	}
 	for (unsigned int i = 0; i < m_pTilesBehindCover.size(); i++)
@@ -332,11 +333,24 @@ void Level1Scene::m_checkCollisions()
 			}
 
 			// Check LOS
-			if (CollisionManager::lineAABBCheck(m_pEnemyVec[j]->getPosition(), m_pPlayer->getPosition(), m_pObstacleVec[i]))
 			{
-				m_pEnemyVec[j]->setLOS(false);
-			
-				//m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
+				glm::vec2 enemyPos = m_pEnemyVec[j]->getPosition();
+				glm::vec2 playerPos = m_pPlayer->getPosition();
+				glm::vec2 dirEtoP = playerPos - enemyPos;
+				glm::vec2 dirHofE = m_pEnemyVec[j]->getDirection();
+				float angle = Util::angle(dirHofE, dirEtoP);
+				float FOV = m_pEnemyVec[j]->getFOV();
+
+				if (angle < FOV && angle > -FOV)
+				{ // Check the angle between the enemy's heading and the player - the enemy cannot see the player if the player is behind it
+					m_pEnemyVec[j]->setLOS(true);
+					//std::cout << "You're in my field of vision" << std::endl;
+					if (!CollisionManager::lineAABBCheck(enemyPos, playerPos, m_pObstacleVec[i]))
+					{ // NOW check whether there's an obstacle in the way
+						//std::cout << " I see you!" << std::endl; // this is backwards
+						m_pEnemyVec[j]->setLOS(false);
+					}
+				}
 			}
 	
 
@@ -360,6 +374,30 @@ void Level1Scene::m_checkCollisions()
 				m_pPlayer->getBullets()[j] = nullptr;
 				m_pPlayer->getBullets().erase(m_pPlayer->getBullets().begin() + 1 * j);
 				break;
+			}
+			// Bullet collision with enemies
+			else
+			{
+				for (unsigned int enemy = 0; enemy < m_pEnemyVec.size(); enemy++)
+				{
+					if (CollisionManager::circleAABBCheck(m_pEnemyVec[enemy], m_pPlayer->getBullets()[j]))
+					{
+						// deal damage to the enemy
+						if (m_pEnemyVec[enemy]->changeHealth(-m_pPlayer->getBullets()[j]->getDamage()))
+						{
+							removeChildByIndex(m_pEnemyVec[enemy]->DisplayListIndexInScene);
+							m_iCurrentPts += m_pEnemyVec[enemy]->getPtsValue();
+							delete m_pEnemyVec[enemy];
+							m_pEnemyVec[enemy] = nullptr;
+							m_pEnemyVec.erase(m_pEnemyVec.begin() + enemy);
+						}
+						
+						// delete the bullet
+						delete bullet;
+						m_pPlayer->getBullets()[j] = nullptr;
+						m_pPlayer->getBullets().erase(m_pPlayer->getBullets().begin() + 1 * j);
+					}
+				}
 			}
 		}
 		m_pPlayer->getBullets().shrink_to_fit();

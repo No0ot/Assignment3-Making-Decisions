@@ -21,6 +21,7 @@ public:
 	virtual void start() = 0;
 
 	void addChild(DisplayObject* child);
+	void removeChildByIndex(unsigned int index);
 	void removeAllChildren();
 	int numberOfChildren() const;
 

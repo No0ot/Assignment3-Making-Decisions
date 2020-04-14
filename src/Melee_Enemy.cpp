@@ -47,7 +47,11 @@ Melee_Enemy::Melee_Enemy()
 	m_numFramesAvoiding = 0;
 	m_maxFramesAvoiding = 30;
 
-	m_smellRadius = 150.0f;
+	m_smellRadius = 100.0f;
+	m_fFOV = 40;
+
+	m_iDamage = 10;
+	m_iPtsValue = 25;
 }
 
 void Melee_Enemy::draw()

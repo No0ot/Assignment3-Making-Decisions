@@ -64,6 +64,8 @@ private:
 	int m_iCurrentHealth;
 	HealthBar m_HealthBar;
 
+	int m_iMeleeDamage;
+	int m_iRangedDamage;
 	std::vector<Bullet*> m_pBulletvec;
 };
 
