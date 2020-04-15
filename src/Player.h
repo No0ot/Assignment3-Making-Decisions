@@ -3,6 +3,7 @@
 #define __PLAYER__
 
 #include "PathFindingDisplayObject.h"
+#include "Collider.h"
 #include "AnimationState.h"
 #include "Animation.h"
 #include "SpriteSheet.h"
@@ -41,9 +42,12 @@ public:
 	void move();
 	void m_checkBounds();
 	std::vector<Bullet*>& getBullets();
+	Collider* getCollider() { return m_meleeCollisionBox; }
+	int m_iMeleeDamage;
 private:
 	float m_fScaleFactor;
 	void m_buildAnimations();
+	Collider* m_meleeCollisionBox;
 
 	SpriteSheet* m_pSpriteSheet;
 	PlayerAnimationState m_currentAnimationState;
@@ -64,7 +68,6 @@ private:
 	int m_iCurrentHealth;
 	HealthBar m_HealthBar;
 
-	int m_iMeleeDamage;
 	int m_iRangedDamage;
 	std::vector<Bullet*> m_pBulletvec;
 };

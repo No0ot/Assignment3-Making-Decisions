@@ -15,13 +15,15 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_i
 
 	// set frame height
 	setHeight(60);
-
+	m_meleeCollisionBox = new Collider;
 	setPosition(glm::vec2(400.0f, 300.0f));
 	setVelocity(glm::vec2(0.0f, 0.0f));
 	setAcceleration(glm::vec2(0.0f, 0.0f));
 	setIsColliding(false);
 	setType(PLAYER);
-
+	m_meleeCollisionBox->setPosition(glm::vec2{500,1000});
+	m_meleeCollisionBox->setHeight(50);
+	m_meleeCollisionBox->setWidth(50);
 	m_maxSpeed = 10.0f;
 	m_currentHeading = 0.0f;
 	m_currentDirection = glm::vec2(1.0f, 0.0f);
@@ -32,7 +34,7 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_i
 	mag = Util::magnitude(directionvector);
 
 	m_iRangedDamage = 10;
-	m_iMeleeDamage = 50;
+	m_iMeleeDamage = 25;
 }
 
 Player::~Player()
@@ -77,18 +79,21 @@ void Player::draw()
 	Util::DrawLine(getPosition(), getPosition() +  dv2 *  mag);
 	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * mag);
 	Util::DrawCircle(getPosition(), getHeight() * 0.7);
-
+	Util::DrawCircle(m_meleeCollisionBox->getPosition() , m_meleeCollisionBox->getWidth());
+	
 	m_HealthBar.draw();
 }
 
 void Player::update()
 {
+	
 	move();
 	m_checkBounds();
 	if (m_pAnimations["melee"].m_currentFrame == (int)m_pAnimations["melee"].frames.size() - 1)
 	{
 		setAnimationState(PLAYER_IDLE);
 		m_pAnimations["melee"].m_currentFrame = 0;
+		m_meleeCollisionBox->setPosition(glm::vec2{ 500,1000 });
 	}
 	if (m_pAnimations["shoot"].m_currentFrame == (int)m_pAnimations["shoot"].frames.size() - 1)
 	{
@@ -197,8 +202,7 @@ void Player::turnaround()
 
 void Player::updatebulletspawn()
 {
-	
-	glm::vec2 tempos2 = Util::rotateVectorRight(m_currentDirection,24.785);
+	glm::vec2 tempos2 = Util::rotateVector(m_currentDirection,24.785);
 	tempos2 = Util::normalize(tempos2);
 	bulletspawnPos = { getPosition().x + (tempos2.x * mag), getPosition().y + (tempos2.y * mag) };
 
@@ -206,6 +210,14 @@ void Player::updatebulletspawn()
 
 void Player::melee()
 {
+	float angle = -30.0f;
+	setAnimationState(PLAYER_MELEE);
+
+		glm::vec2 tempos = Util::rotateVector(m_currentDirection, angle);
+		tempos = Util::normalize(tempos);
+		m_meleeCollisionBox->setPosition(glm::vec2{getPosition().x + (tempos.x * 60.0f), getPosition().y + (tempos.y * 60.0f)});
+	
+
 }
 
 void Player::shoot()
