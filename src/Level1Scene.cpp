@@ -99,55 +99,74 @@ void Level1Scene::handleEvents()
 			}
 			// movement keys
 			{
-				if(keyPressed == SDLK_w)
+				if (keyPressed == SDLK_f && m_pPlayer->canMelee == true)
 				{
+					m_pPlayer->canShoot = true;
+					TheSoundManager::Instance()->playSound("PlayerMelee", 0);
+					m_pPlayer->melee();
+				}
+				
+				if (keyPressed == SDLK_w )
+				{
+					m_pPlayer->canMelee = true;
+					m_pPlayer->canShoot = true;
 					std::cout << "move forward" << std::endl;
 					m_pPlayer->setAnimationState(PLAYER_RUN);
 					TheSoundManager::Instance()->playSound("PlayerStep", 0);
-					m_pPlayer->moveForward();;
+					m_pPlayer->moveForward();
+					
 				}
 
-				if (keyPressed == SDLK_a)
+				if (keyPressed == SDLK_a )
 				{
+					m_pPlayer->canShoot = true;
+					m_pPlayer->canMelee = true;
 					//std::cout << "move left" << std::endl;
-				    m_pPlayer->setAnimationState(PLAYER_IDLE);
+					m_pPlayer->setAnimationState(PLAYER_IDLE);
 					m_pPlayer->turnLeft();
+					
 				}
 
-				if (keyPressed == SDLK_s)
+				if (keyPressed == SDLK_s )
 				{
+					m_pPlayer->canShoot = true;
+					m_pPlayer->canMelee = true;
 					std::cout << "move back" << std::endl;
 					m_pPlayer->setAnimationState(PLAYER_RUN);
 					m_pPlayer->moveBack();
+					
 				}
 
-				if (keyPressed == SDLK_d)
+				if (keyPressed == SDLK_d )
 				{
+					m_pPlayer->canShoot = true;
+					m_pPlayer->canMelee = true;
 					//std::cout << "move right" << std::endl;
 					m_pPlayer->setAnimationState(PLAYER_IDLE);
 					m_pPlayer->turnRight();
+					
 				}
 
-				if (keyPressed == SDLK_f)
-				{
-					TheSoundManager::Instance()->playSound("PlayerMelee", 0);
-					m_pPlayer->melee();
 
-				}
-
-				if (keyPressed == SDLK_SPACE)
+				if (keyPressed == SDLK_SPACE && m_pPlayer->canShoot)
 				{
+					m_pPlayer->canMelee = true;
 					m_pPlayer->setAnimationState(PLAYER_SHOOT);
 					TheSoundManager::Instance()->playSound("PlayerShoot", 0);
 					m_pPlayer->shoot();
+					
 
 				}
 
 				if (keyPressed == SDLK_c)
 				{
+					m_pPlayer->canMelee = true;
+					m_pPlayer->canShoot = true;
 					m_pPlayer->turnaround();
+					
 
 				}
+				
 			}
 			
 			break;
@@ -362,8 +381,30 @@ void Level1Scene::m_checkCollisions()
 						//	m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
 					}
 				}
+		for (unsigned int enemy = 0; enemy < m_pEnemyVec.size(); enemy++)
+		{
+			if (CollisionManager::circleAABBCheck(m_pEnemyVec[enemy], m_pPlayer->getCollider()))
+			{
+				m_pEnemyVec[enemy]->setVelocity(m_pEnemyVec[enemy]->getVelocity() * -20.2f);
+				m_pEnemyVec[enemy]->setPosition(m_pEnemyVec[enemy]->getPosition() + m_pEnemyVec[enemy]->getVelocity());
 
+				if (m_pEnemyVec[enemy]->changeHealth(-m_pPlayer->m_iMeleeDamage))
+				{
+					removeChildByIndex(m_pEnemyVec[enemy]->DisplayListIndexInScene);
+					m_iCurrentPts += m_pEnemyVec[enemy]->getPtsValue();
+					delete m_pEnemyVec[enemy];
+					m_pEnemyVec[enemy] = nullptr;
+					m_pEnemyVec.erase(m_pEnemyVec.begin() + enemy);
+				}
+			}
+			if (CollisionManager::circleAABBCheck(m_pEnemyVec[enemy]->getCollider(), m_pPlayer))
+			{
+				if (m_pPlayer->changeHealth(m_pEnemyVec[enemy]->getDamage()))
+				{
 
+				}
+			}
+		}
 
 				// Handle bullet collisions
 				for (unsigned int j = 0; j < m_pPlayer->getBullets().size(); j++)

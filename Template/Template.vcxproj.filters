@@ -135,6 +135,9 @@
     <ClCompile Include="..\src\PatrolPoint.cpp">
       <Filter>Game Objects</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Collider.cpp">
+      <Filter>Game Objects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Game.h">
@@ -282,6 +285,9 @@
       <Filter>Enums</Filter>
     </ClInclude>
     <ClInclude Include="..\src\PatrolPoint.h">
+      <Filter>Game Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Collider.h">
       <Filter>Game Objects</Filter>
     </ClInclude>
   </ItemGroup>

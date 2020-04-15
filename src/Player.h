@@ -44,7 +44,13 @@ public:
 	std::vector<Bullet*>& getBullets();
 	Collider* getCollider() { return m_meleeCollisionBox; }
 	int m_iMeleeDamage;
+	PlayerAnimationState getAnimationState() { return m_currentAnimationState;  }
+	bool changeHealth(int cdamage);
+	bool canMelee;
+	bool canShoot;
 private:
+	int currentcounter;
+	int currentcounterMax;
 	float m_fScaleFactor;
 	void m_buildAnimations();
 	Collider* m_meleeCollisionBox;

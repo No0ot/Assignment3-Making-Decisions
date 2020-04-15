@@ -12,7 +12,9 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_i
 	m_buildAnimations();
 	// set frame width
 	setWidth(60);
-
+	currentcounter = 0;
+	canMelee = true;
+	canShoot = true;
 	// set frame height
 	setHeight(60);
 	m_meleeCollisionBox = new Collider;
@@ -22,8 +24,8 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_i
 	setIsColliding(false);
 	setType(PLAYER);
 	m_meleeCollisionBox->setPosition(glm::vec2{500,1000});
-	m_meleeCollisionBox->setHeight(50);
-	m_meleeCollisionBox->setWidth(50);
+	m_meleeCollisionBox->setHeight(65);
+	m_meleeCollisionBox->setWidth(65);
 	m_maxSpeed = 10.0f;
 	m_currentHeading = 0.0f;
 	m_currentDirection = glm::vec2(1.0f, 0.0f);
@@ -86,19 +88,20 @@ void Player::draw()
 
 void Player::update()
 {
-	
 	move();
 	m_checkBounds();
 	if (m_pAnimations["melee"].m_currentFrame == (int)m_pAnimations["melee"].frames.size() - 1)
 	{
-		setAnimationState(PLAYER_IDLE);
 		m_pAnimations["melee"].m_currentFrame = 0;
 		m_meleeCollisionBox->setPosition(glm::vec2{ 500,1000 });
+		canMelee = true;
+		setAnimationState(PLAYER_IDLE);
 	}
 	if (m_pAnimations["shoot"].m_currentFrame == (int)m_pAnimations["shoot"].frames.size() - 1)
 	{
-		setAnimationState(PLAYER_IDLE);
 		m_pAnimations["shoot"].m_currentFrame = 0;
+		canShoot = true;
+		setAnimationState(PLAYER_IDLE);
 	}
 	for (int i = 0; i < (int)m_pBulletvec.size(); i++)
 	{
@@ -210,20 +213,30 @@ void Player::updatebulletspawn()
 
 void Player::melee()
 {
-	float angle = -30.0f;
-	setAnimationState(PLAYER_MELEE);
-
+		canMelee = false;
+		float angle = 0.0f;
+		setAnimationState(PLAYER_MELEE);
 		glm::vec2 tempos = Util::rotateVector(m_currentDirection, angle);
 		tempos = Util::normalize(tempos);
-		m_meleeCollisionBox->setPosition(glm::vec2{getPosition().x + (tempos.x * 60.0f), getPosition().y + (tempos.y * 60.0f)});
+		m_meleeCollisionBox->setPosition(glm::vec2{ getPosition().x + (tempos.x * 50.0f), getPosition().y + (tempos.y * 50.0f) });
 	
-
 }
 
 void Player::shoot()
 {
+	canShoot = false;
 	m_pBulletvec.push_back(new Bullet(bulletspawnPos, getHeading(), m_iRangedDamage));
 	//m_pBulletvec.back()->spawn();
+}
+
+bool Player::changeHealth(int change)
+{
+	m_iCurrentHealth += change;
+	if (m_iCurrentHealth <= 0)
+	{
+		return true;
+	}
+	return false;
 }
 
 void Player::m_changeDirection()

@@ -4,6 +4,7 @@
 
 #include "PathFindingDisplayObject.h"
 #include "Animation.h"
+#include "Collider.h"
 #include "SpriteSheet.h"
 #include "AnimationState.h"
 #include "BehaviourState.h"
@@ -19,7 +20,7 @@ public:
 
 	// Inherited via GameObject
 	virtual void draw() = 0;
-	virtual void update() override;
+	virtual void update() = 0;
 	virtual void clean() override;
 
 	void move();
@@ -50,10 +51,14 @@ public:
 	int getDamage();
 	bool changeHealth(int change);
 	int getPtsValue();
+	Collider* getCollider() { return m_meleeCollisionBox; }
 
 	int randomnum;
 	unsigned int DisplayListIndexInScene;
+	bool canDamage;
+
 protected:
+	Collider* m_meleeCollisionBox;
 	bool canCower;
 	bool m_arrived;
 	float m_fScaleFactor;
@@ -83,7 +88,7 @@ protected:
 	void m_checkBehaviourState();
 	void m_idle();
 	void m_patrol();
-	void m_attack();
+	virtual void m_attack() = 0;
 	void m_bite();
 	void m_cower();
 	void m_checkHealth();
