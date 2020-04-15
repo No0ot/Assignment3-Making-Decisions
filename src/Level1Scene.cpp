@@ -48,6 +48,14 @@ void Level1Scene::update()
 		}
 	}
 	m_PtsBar.update();
+
+	if (m_pEnemyVec.size() == 0)
+	{
+		m_pEnemyVec.push_back(new Melee_Enemy());
+		addChild(m_pEnemyVec.back());
+		m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+		m_spawnObject(m_pEnemyVec.back());
+	}
 }
 
 void Level1Scene::clean()
@@ -383,6 +391,13 @@ void Level1Scene::m_checkCollisions()
 				}
 		for (unsigned int enemy = 0; enemy < m_pEnemyVec.size(); enemy++)
 		{
+			if (CollisionManager::circleAABBCheck(m_pEnemyVec[enemy]->getCollider(), m_pPlayer))
+			{
+				if (m_pPlayer->changeHealth(m_pEnemyVec[enemy]->getDamage()))
+				{
+
+				}
+			}
 			if (CollisionManager::circleAABBCheck(m_pEnemyVec[enemy], m_pPlayer->getCollider()))
 			{
 				m_pEnemyVec[enemy]->setVelocity(m_pEnemyVec[enemy]->getVelocity() * -20.2f);
@@ -395,13 +410,6 @@ void Level1Scene::m_checkCollisions()
 					delete m_pEnemyVec[enemy];
 					m_pEnemyVec[enemy] = nullptr;
 					m_pEnemyVec.erase(m_pEnemyVec.begin() + enemy);
-				}
-			}
-			if (CollisionManager::circleAABBCheck(m_pEnemyVec[enemy]->getCollider(), m_pPlayer))
-			{
-				if (m_pPlayer->changeHealth(m_pEnemyVec[enemy]->getDamage()))
-				{
-
 				}
 			}
 		}
