@@ -70,6 +70,8 @@ void Level1Scene::handleEvents()
 
 	SDL_Keycode keyPressed;
 	SDL_Keycode keyReleased;
+
+	bool pControlState = m_pPlayer->getControlState();
 	
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -82,6 +84,7 @@ void Level1Scene::handleEvents()
 		case SDL_MOUSEMOTION:
 			m_mousePosition.x = event.motion.x;
 			m_mousePosition.y = event.motion.y;
+			TheGame::Instance()->setMousePosition(m_mousePosition);
 			break;
 		case SDL_MOUSEWHEEL:
 			wheel = event.wheel.y;
@@ -114,10 +117,16 @@ void Level1Scene::handleEvents()
 					m_pPlayer->melee();
 				}
 				
-				if (keyPressed == SDLK_w )
+				if (keyPressed == SDLK_BACKQUOTE)
 				{
-					m_pPlayer->canMelee = true;
-					m_pPlayer->canShoot = true;
+					TheGame::Instance()->toggleDebugMode();
+					std::cout << "Debug mode " << (TheGame::Instance()->getDebugMode() == true ? "activated" : "deactivated") << "." << std::endl;
+				}
+
+				if (keyPressed == SDLK_w)
+				{
+					//m_pPlayer->canMelee = true;
+					//m_pPlayer->canShoot = true;
 					std::cout << "move forward" << std::endl;
 					m_pPlayer->setAnimationState(PLAYER_RUN);
 					TheSoundManager::Instance()->playSound("PlayerStep", 0);
@@ -125,10 +134,10 @@ void Level1Scene::handleEvents()
 					
 				}
 
-				if (keyPressed == SDLK_a )
+				if (keyPressed == SDLK_a && pControlState == false)
 				{
-					m_pPlayer->canShoot = true;
-					m_pPlayer->canMelee = true;
+					//m_pPlayer->canShoot = true;
+					//m_pPlayer->canMelee = true;
 					//std::cout << "move left" << std::endl;
 					m_pPlayer->setAnimationState(PLAYER_IDLE);
 					m_pPlayer->turnLeft();
@@ -137,18 +146,18 @@ void Level1Scene::handleEvents()
 
 				if (keyPressed == SDLK_s )
 				{
-					m_pPlayer->canShoot = true;
-					m_pPlayer->canMelee = true;
+					//m_pPlayer->canShoot = true;
+					//m_pPlayer->canMelee = true;
 					std::cout << "move back" << std::endl;
 					m_pPlayer->setAnimationState(PLAYER_RUN);
 					m_pPlayer->moveBack();
 					
 				}
 
-				if (keyPressed == SDLK_d )
+				if (keyPressed == SDLK_d && pControlState == false)
 				{
-					m_pPlayer->canShoot = true;
-					m_pPlayer->canMelee = true;
+					//m_pPlayer->canShoot = true;
+					//m_pPlayer->canMelee = true;
 					//std::cout << "move right" << std::endl;
 					m_pPlayer->setAnimationState(PLAYER_IDLE);
 					m_pPlayer->turnRight();
@@ -158,7 +167,7 @@ void Level1Scene::handleEvents()
 
 				if (keyPressed == SDLK_SPACE && m_pPlayer->canShoot)
 				{
-					m_pPlayer->canMelee = true;
+					//m_pPlayer->canMelee = true;
 					m_pPlayer->setAnimationState(PLAYER_SHOOT);
 					TheSoundManager::Instance()->playSound("PlayerShoot", 0);
 					m_pPlayer->shoot();
@@ -166,10 +175,10 @@ void Level1Scene::handleEvents()
 
 				}
 
-				if (keyPressed == SDLK_c)
+				if (keyPressed == SDLK_c && pControlState == false)
 				{
-					m_pPlayer->canMelee = true;
-					m_pPlayer->canShoot = true;
+					//m_pPlayer->canMelee = true;
+					//m_pPlayer->canShoot = true;
 					m_pPlayer->turnaround();
 					
 
@@ -322,6 +331,7 @@ void Level1Scene::m_checkCollisions()
 		{
 			m_pEnemyVec[i]->setFeeler(j, false);
 			m_pEnemyVec[i]->setLOS(false);
+			m_pEnemyVec[i]->setSmell(false);
 		}
 	}
 	for (unsigned int i = 0; i < m_pTilesBehindCover.size(); i++)
@@ -337,8 +347,127 @@ void Level1Scene::m_checkCollisions()
 		if (CollisionManager::circleAABBCheck(m_pPlayer, m_pObstacleVec[i]))
 		{
 			TheSoundManager::Instance()->playSound("ObstacleBumped", 0);
-			m_pPlayer->setVelocity(m_pPlayer->getVelocity() * glm::vec2{ -0.8 ,-0.8 });
-			m_pPlayer->move();
+
+			// TAKE 5!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			glm::vec2 pVel = m_pPlayer->getVelocity();
+			glm::vec2 pPos = m_pPlayer->getPosition() - (pVel * 2.25f);
+			int pW = m_pPlayer->getWidth();
+			int pH = m_pPlayer->getHeight();
+			glm::vec2 oPos = m_pObstacleVec[i]->getPosition();
+			int oW = m_pObstacleVec[i]->getWidth();
+			int oH = m_pObstacleVec[i]->getHeight();
+			
+			SDL_Rect pRect = { pPos.x - (pW / 2), pPos.y - (pW / 2), pW, pH };
+			SDL_Rect oRect = { oPos.x - (oW / 2), oPos.y - (oW / 2), oW, oH };
+			
+			if (pRect.x + pRect.w <= oRect.x)
+			{
+				m_pPlayer->setVelocity({ 0, pVel.y });
+				pPos.y += (pVel.y * 2.25f);
+			}
+			else if (pRect.x >= oRect.x + oRect.w)
+			{
+				m_pPlayer->setVelocity({ 0, pVel.y });
+				pPos.y += (pVel.y * 2.25f);
+			}
+			else if (pRect.y + pRect.h <= oRect.y)
+			{
+				m_pPlayer->setVelocity({ pVel.x, 0 });
+				pPos.x += (pVel.x * 2.25f);
+			}
+			else if (pRect.y >= oRect.y + oRect.h)
+			{
+				m_pPlayer->setVelocity({ pVel.x, 0 });
+				pPos.x += (pVel.x * 2.25f);
+			}
+
+			m_pPlayer->setPosition(pPos);
+
+			// TAKE 4!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			//glm::vec2 pVel = m_pPlayer->getVelocity();
+			//glm::vec2 pPos = m_pPlayer->getPosition() - pVel;
+			//int pW = m_pPlayer->getWidth();
+			//int pH = m_pPlayer->getHeight();
+			//glm::vec2 oPos = m_pObstacleVec[i]->getPosition();
+			//int oW = m_pObstacleVec[i]->getWidth();
+			//int oH = m_pObstacleVec[i]->getHeight();
+			//float pLef = pPos.x - (pW * 0.5f);
+			//float pRig = pPos.x + (pW * 0.5f);
+			//float pTop = pPos.y - (pH * 0.5f);
+			//float pBot = pPos.y + (pH * 0.5f);
+			//float oLef = oPos.x - (oW * 0.5f);
+			//float oRig = oPos.x + (oW * 0.5f);
+			//float oTop = oPos.y - (oH * 0.5f);
+			//float oBot = oPos.y + (oH * 0.5f);
+			//
+			//if (pRig < oLef)
+			//{
+			//	pPos.x = oLef - (pW * 0.5f);
+			//}
+			//else if (pLef > oRig)
+			//{
+			//	pPos.x = oRig + (pW * 0.5f);
+			//}
+			//else if (pTop < oBot)
+			//{
+			//	pPos.y = oBot + (pH * 0.5f);
+			//}
+			//else if (pBot > oTop)
+			//{
+			//	pPos.y = oTop - (pH * 0.5f);
+			//}
+			//m_pPlayer->setPosition(pPos);
+
+			// TAKE 3!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			//float dist = CollisionManager::circleAABBsquaredDistance(m_pPlayer->getPosition(), m_pPlayer->getWidth(), m_pObstacleVec[i]->getPosition(), m_pObstacleVec[i]->getWidth(), m_pObstacleVec[i]->getHeight());
+			//dist = sqrt(dist);
+			//std::cout << "dist: " << dist << std::endl;
+			//glm::vec2 relativePos = m_pObstacleVec[i]->getPosition() - m_pPlayer->getPosition();
+			//float pVelMag = Util::magnitude(m_pPlayer->getVelocity());
+			//float rejectMag = pVelMag == 0.0f ? 0.0f : dist / pVelMag;
+			//glm::vec2 reject = Util::normalize(relativePos) * rejectMag;
+			//m_pPlayer->setPosition(m_pPlayer->getPosition() - reject);
+			//m_pPlayer->setVelocity({ 0, 0 });
+
+			// TAKE 2!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			//glm::vec2 pVel = m_pPlayer->getVelocity();
+			//glm::vec2 pPos = m_pPlayer->getPosition() - pVel;
+			//int pW = m_pPlayer->getWidth();
+			//int pH = m_pPlayer->getHeight();
+			//glm::vec2 oPos = m_pObstacleVec[i]->getPosition();
+			//int oW = m_pObstacleVec[i]->getWidth();
+			//int oH = m_pObstacleVec[i]->getHeight();
+			//
+			//SDL_Rect pRect = { pPos.x - (pW / 2), pPos.y - (pW / 2), pW, pH };
+			//SDL_Rect oRect = { oPos.x - (oW / 2), oPos.y - (oW / 2), oW, oH };
+			//
+			//if (pRect.x + pRect.w > oRect.x)
+			//{
+			//	pPos.x = pPos.x - pVel.x;
+			//	//pPos.x = pPos.x - ((pRect.x + pRect.w) - oRect.x);
+			//	//std::cout << ((pRect.x + pRect.w) - oRect.x);
+			//}
+			//if (pRect.x < oRect.x + oRect.w)
+			//{
+			//	pPos.x = pPos.x - pVel.x;
+			//	//pPos.x = pPos.x - (pRect.x - (oRect.x + oRect.w));
+			//}
+			//if (pRect.y + pRect.h > oRect.y)
+			//{
+			//	pPos.y = pPos.y - pVel.y;
+			//	//pPos.y = pPos.y - ((pRect.y + pRect.h) - oRect.y);
+			//}
+			//if (pRect.y < oRect.y + oRect.h)
+			//{
+			//	pPos.y = pPos.y - pVel.y;
+			//	//pPos.y = pPos.y - (pRect.y - (oRect.y + oRect.h));
+			//}
+			//m_pPlayer->setPosition(pPos);
+			//m_pPlayer->setVelocity({ 0, 0 });
+			
+			// TAKE 1!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			//m_pPlayer->setVelocity(m_pPlayer->getVelocity() * glm::vec2{ -0.8 ,-0.8 });
+			//m_pPlayer->move();
 		}
 
 		// Handle enemy collisions

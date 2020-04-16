@@ -69,7 +69,7 @@ void Melee_Enemy::draw()
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["idle"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.5f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
-		
+
 		break;
 	case WOLF_WALK:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["walk"],
@@ -89,13 +89,16 @@ void Melee_Enemy::draw()
 
 	m_HealthBar->draw();
 
-	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle));
-	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * m_feelerLength);
-	Util::DrawLine(getPosition(), getTargetPosition());
-	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
-	Util::DrawCircle(getPosition(), getHeight() * m_fScaleFactor);
-	Util::DrawCircle(getPosition(), getSmellRadius());
-	Util::DrawCircle(m_meleeCollisionBox->getPosition(), m_meleeCollisionBox->getWidth());
+	if (TheGame::Instance()->getDebugMode())
+	{
+		Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle));
+		Util::DrawLine(getPosition(), getPosition() + m_currentDirection * m_feelerLength);
+		Util::DrawLine(getPosition(), getTargetPosition());
+		Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
+		Util::DrawCircle(getPosition(), getHeight() * m_fScaleFactor);
+		Util::DrawCircle(getPosition(), getSmellRadius());
+		Util::DrawCircle(m_meleeCollisionBox->getPosition(), m_meleeCollisionBox->getWidth());
+	}
 }
 
 void Melee_Enemy::m_buildAnimations()
@@ -178,9 +181,9 @@ void Melee_Enemy::update()
 		break;
 	}
 
-	std::cout << "STEERINGSTATE: " << getState() << std::endl;
-	std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
-	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
+	//std::cout << "STEERINGSTATE: " << getState() << std::endl;
+	//std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
+	//std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
 
 }
 

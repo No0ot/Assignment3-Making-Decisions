@@ -34,6 +34,7 @@ public:
 	void turnRight();
 	void turnLeft();
 	void turnaround();
+	void mouseLook();
 
 	void updatebulletspawn();
 	void melee();
@@ -48,6 +49,8 @@ public:
 	bool changeHealth(int cdamage);
 	bool canMelee;
 	bool canShoot;
+	bool getControlState() const;
+	void setControlState(bool state);
 private:
 	int currentcounter;
 	int currentcounterMax;
@@ -69,13 +72,20 @@ private:
 	float spawnangle;
 	glm::vec2 directionvector;
 	float mag;
+	void accelerate();
 
 	int m_iTotalHealth;
 	int m_iCurrentHealth;
 	HealthBar m_HealthBar;
 
+	unsigned int m_iMeleeFrame;
+	unsigned int m_iMeleeFramesMax;
+	unsigned int m_iRangedFrame;
+	unsigned int m_iRangedFramesMax;
 	int m_iRangedDamage;
 	std::vector<Bullet*> m_pBulletvec;
+
+	bool m_playerControlState;
 };
 
 #endif /* defined (__PLAYER__) */

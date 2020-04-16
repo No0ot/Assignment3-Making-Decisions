@@ -80,11 +80,14 @@ void Ranged_Enemy::draw()
 
 	m_HealthBar->draw();
 
-	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle));
-	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * m_feelerLength);
-	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
-	Util::DrawCircle(getPosition(), getHeight() * m_fScaleFactor);
-	Util::DrawCircle(getPosition(), getSmellRadius());
+	if (TheGame::Instance()->getDebugMode())
+	{
+		Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle));
+		Util::DrawLine(getPosition(), getPosition() + m_currentDirection * m_feelerLength);
+		Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
+		Util::DrawCircle(getPosition(), getHeight() * m_fScaleFactor);
+		Util::DrawCircle(getPosition(), getSmellRadius());
+	}
 }
 
 void Ranged_Enemy::m_buildAnimations()

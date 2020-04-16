@@ -54,6 +54,7 @@ public:
 
 	// getters
 	SDL_Renderer* getRenderer() const;
+	void setMousePosition(glm::vec2 pos);
 	glm::vec2 getMousePosition() const;
 
 	void setFrames(Uint32 frames);
@@ -62,6 +63,8 @@ public:
 	void changeSceneState(SceneState new_state);
 	void quit();
 
+	void toggleDebugMode();
+	bool getDebugMode() const;
 	
 private:
 	Game();
@@ -74,6 +77,7 @@ private:
 	int m_currentFrame;
 
 	bool m_bRunning;
+	bool m_bDebug;
 
 	static Game* s_pInstance;
 	

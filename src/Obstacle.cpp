@@ -26,8 +26,11 @@ void Obstacle::draw()
 	TheTextureManager::Instance()->draw("obstacle", xComponent, yComponent,
 		TheGame::Instance()->getRenderer(), 0, 255, true);
 
-	glm::vec2 temp = { getPosition().x - getWidth() * 0.5, getPosition().y - getHeight() * 0.5 };
-	Util::DrawRect(temp, getWidth(), getHeight());
+	if (TheGame::Instance()->getDebugMode())
+	{
+		glm::vec2 temp = { getPosition().x - getWidth() * 0.5, getPosition().y - getHeight() * 0.5 };
+		Util::DrawRect(temp, getWidth(), getHeight());
+	}
 }
 
 void Obstacle::update()
