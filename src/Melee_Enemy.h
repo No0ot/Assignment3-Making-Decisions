@@ -16,6 +16,10 @@ public:
 	void m_buildAnimations();
 
 	virtual void m_attack() override;
+	virtual void m_idle() override;
+	virtual void m_patrol() override;
+	virtual void m_cower() override;
+	virtual void m_checkHealth() override;
 
 };
 

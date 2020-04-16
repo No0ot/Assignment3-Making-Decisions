@@ -207,60 +207,6 @@ void Enemy::m_checkBehaviourState()
 	}
 }
 
-void Enemy::m_idle()
-{
-	setState(IDLE);
-	setAnimState(WOLF_IDLE);
-	//m_Stateframes = 0;
-	m_StateframesMax = 120;
-	if (m_Stateframes >= m_StateframesMax)
-	{
-		m_Stateframes = 0;
-	setBehaviour(BehaviourState::PATROL);
-	}
-	m_Stateframes++;
-
-}
-
-void Enemy::m_patrol()
-{
-	setState(SEEK);
-	setAnimState(WOLF_WALK);
-	m_maxSpeed = 2.0f;
-	if (m_arrived)
-	{
-		m_specialnumber = rand() % 4;
-	}
-	if (canDetect())
-		setBehaviour(BehaviourState::ATTACK);
-}
-
-void Enemy::m_bite()
-{
-
-
-}
-
-void Enemy::m_cower()
-{
-	setState(SEEK);
-	m_maxSpeed = 2.0f;
-	if (m_arrived)
-	{
-		setBehaviour(BehaviourState::IDLE2);
-	}
-
-}
-
-void Enemy::m_checkHealth()
-{
-	if (m_iCurrentHealth <= m_iTotalHealth / 2 && canCower)
-	{
-		setBehaviour(BehaviourState::COWER);
-		canCower = false;
-	}
-}
-
 void Enemy::m_checkSteeringState()
 {
 	if (m_checkFeelers())

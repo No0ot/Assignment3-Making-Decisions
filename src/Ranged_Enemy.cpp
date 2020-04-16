@@ -4,15 +4,18 @@
 
 Ranged_Enemy::Ranged_Enemy()
 {
-	m_iTotalHealth = 70;
-	m_iCurrentHealth = 70;
+	playerDistance = 0;
+	m_iTotalHealth = 80;
+	m_iCurrentHealth = 80;
 	m_HealthBar = new HealthBar(*this, m_iCurrentHealth, m_iTotalHealth, 0.5f, { 255, 0, 0, 192 });
 	m_fScaleFactor = 2.0f;
+	for (int i = 0; i < 3; i++)
+		quarterHealth[i] = true;
 
-	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/mech-Sheet.txt",
-		"../Assets/sprites/mech-Sheet.png", "mechspritesheet", TheGame::Instance()->getRenderer());
+	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/mech.txt",
+		"../Assets/sprites/mech.png", "mech", TheGame::Instance()->getRenderer());
 
-	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("mechspritesheet");
+	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("mech");
 	m_buildAnimations();
 	m_meleeCollisionBox = new Collider;
 	m_meleeCollisionBox->setPosition(glm::vec2{ 500,1000 });
@@ -62,17 +65,22 @@ void Ranged_Enemy::draw()
 	switch (m_currentAnimationState)
 	{
 	case WOLF_IDLE:
-		TheTextureManager::Instance()->playAnimation("mechspritesheet", m_pAnimations["idle"],
+		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["idle"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.5f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
+	case WOLF_WALK:
+		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["walk"],
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["walk"].m_currentFrame, 0.25f,
+			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+		break;
 	case WOLF_RUN:
-		TheTextureManager::Instance()->playAnimation("mechspritesheet", m_pAnimations["walk"],
+		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["walk"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["walk"].m_currentFrame, 0.25f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
 	case WOLF_BITE:
-		TheTextureManager::Instance()->playAnimation("mechspritesheet", m_pAnimations["shoot"],
+		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["shoot"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["shoot"].m_currentFrame, 0.5f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
@@ -82,6 +90,7 @@ void Ranged_Enemy::draw()
 
 	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle));
 	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * m_feelerLength);
+	Util::DrawLine(getPosition(), getTargetPosition());
 	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
 	Util::DrawCircle(getPosition(), getHeight() * m_fScaleFactor);
 	Util::DrawCircle(getPosition(), getSmellRadius());
@@ -120,11 +129,87 @@ void Ranged_Enemy::m_buildAnimations()
 
 void Ranged_Enemy::m_attack()
 {
+	m_targetPosition = m_playersPos;
+	if (playerDistance <= 350)
+		setState(FLEE);
+	else
+		setState(IDLE);
+	m_maxSpeed = 1.5f;
+	if (m_arrived)
+	{
+		setAnimState(WOLF_BITE);
+		glm::vec2 tempos = Util::rotateVector(m_currentDirection, 0);
+		tempos = Util::normalize(tempos);
+		m_meleeCollisionBox->setPosition(glm::vec2{ getPosition().x + (tempos.x * 50.0f), getPosition().y + (tempos.y * 50.0f) });
+		//m_bite();
+		setBehaviour(BehaviourState::IDLE2);
+	}
+}
 
+void Ranged_Enemy::m_idle()
+{
+	setState(IDLE);
+	setAnimState(WOLF_IDLE);
+	//m_Stateframes = 0;
+	m_StateframesMax = 120;
+	if (m_Stateframes >= m_StateframesMax)
+	{
+		m_Stateframes = 0;
+		setBehaviour(BehaviourState::PATROL);
+	}
+	m_Stateframes++;
+
+}
+
+void Ranged_Enemy::m_patrol()
+{
+	m_targetPosition = m_patrolPoint;
+	setState(SEEK);
+	setAnimState(WOLF_WALK);
+	m_maxSpeed = 1.2f;
+	if (m_arrived)
+	{
+		m_specialnumber = rand() % 4;
+	}
+	if (canDetect())
+		setBehaviour(BehaviourState::ATTACK);
+}
+
+void Ranged_Enemy::m_cower()
+{
+	m_targetPosition = m_nearestCoverTile;
+	setState(SEEK);
+	m_maxSpeed = 1.2f;
+	if (m_arrived)
+	{
+		setBehaviour(BehaviourState::IDLE2);
+	}
+
+}
+
+void Ranged_Enemy::m_checkHealth()
+{
+
+	if (m_iCurrentHealth <= 60 && quarterHealth[0])
+	{
+		setBehaviour(BehaviourState::COWER);
+		quarterHealth[0] = false;
+	}
+	if (m_iCurrentHealth <= 40 && quarterHealth[1])
+	{
+		setBehaviour(BehaviourState::COWER);
+		quarterHealth[1] = false;
+	}
+	if (m_iCurrentHealth <= 20 && quarterHealth[2])
+	{
+		setBehaviour(BehaviourState::COWER);
+		quarterHealth[2] = false;
+	}
 }
 
 void Ranged_Enemy::update()
 {
+	playerDistance = Util::distance(getPosition(), m_playersPos);
 	m_checkHealth();
 	m_checkBehaviourState();
 	m_checkSteeringState();

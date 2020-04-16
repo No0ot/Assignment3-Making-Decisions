@@ -23,6 +23,14 @@ public:
 	virtual void update() = 0;
 	virtual void clean() override;
 
+	//virtual enemy functions
+	void m_checkBehaviourState();
+	virtual void m_idle() = 0;
+	virtual void m_patrol() = 0;
+	virtual void m_attack() = 0;
+	virtual void m_cower() = 0;
+	virtual void m_checkHealth() = 0;
+
 	void move();
 	//void accelerate();
 	//void decelerate();
@@ -56,7 +64,10 @@ public:
 	int randomnum;
 	unsigned int DisplayListIndexInScene;
 	bool canDamage;
-
+	glm::vec2 m_playersPos;
+	glm::vec2 m_nearestCoverTile;
+	glm::vec2 m_furthestCoverTile;
+	glm::vec2 m_patrolPoint;
 protected:
 	Collider* m_meleeCollisionBox;
 	bool canCower;
@@ -85,13 +96,7 @@ protected:
 
 	// DEcision making Functions
 
-	void m_checkBehaviourState();
-	void m_idle();
-	void m_patrol();
-	virtual void m_attack() = 0;
-	void m_bite();
-	void m_cower();
-	void m_checkHealth();
+
 
 	// steering behaviour functions
 	void m_checkSteeringState();
