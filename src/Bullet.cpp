@@ -32,13 +32,15 @@ Bullet::~Bullet()
 
 void Bullet::draw()
 {
-
 	TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["shoot"],
 		getPosition().x, getPosition().y, 1.0f, m_pAnimations["shoot"].m_currentFrame, 0.12f,
 		TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
-
-	glm::vec2 temp = { getPosition().x - getWidth() * 0.5, getPosition().y - getHeight() * 0.5 };
-	Util::DrawRect(temp, getWidth(), getHeight());
+	
+	if (TheGame::Instance()->getDebugMode())
+	{
+		glm::vec2 temp = { getPosition().x - getWidth() * 0.5, getPosition().y - getHeight() * 0.5 };
+		Util::DrawRect(temp, getWidth(), getHeight());
+	}
 }
 
 void Bullet::m_changeDirection()

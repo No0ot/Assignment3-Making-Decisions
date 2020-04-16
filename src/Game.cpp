@@ -111,6 +111,11 @@ SDL_Renderer * Game::getRenderer() const
 	return m_pRenderer.get();
 }
 
+void Game::setMousePosition(glm::vec2 pos)
+{
+	m_mousePosition = pos;
+}
+
 glm::vec2 Game::getMousePosition() const
 {
 	return m_mousePosition;
@@ -174,6 +179,16 @@ void Game::changeSceneState(const SceneState new_state)
 void Game::quit()
 {
 	m_bRunning = false;
+}
+
+void Game::toggleDebugMode()
+{
+	m_bDebug = !m_bDebug;
+}
+
+bool Game::getDebugMode() const
+{
+	return m_bDebug;
 }
 
 void Game::render() const

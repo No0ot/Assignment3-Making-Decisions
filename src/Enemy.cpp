@@ -1,26 +1,10 @@
 #include "Enemy.h"
 #include "Game.h"
 
-Enemy::Enemy() : m_Stateframes(0), m_arrived(false) {}
+Enemy::Enemy() : m_Stateframes(0), m_arrived(false), canDamage(true) {}
 
 Enemy::~Enemy()
 = default;
-
-void Enemy::update()
-{
-	m_checkHealth();
-	m_checkBehaviourState();
-	m_checkSteeringState();
-	m_checkBounds();
-
-	m_HealthBar->update();
-
-	
-	std::cout << "STEERINGSTATE: " << getState()  << std::endl;
-	std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
-	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
-	
-}
 
 void Enemy::clean()
 {
@@ -220,70 +204,6 @@ void Enemy::m_checkBehaviourState()
 	case BehaviourState::COWER:
 		m_cower();
 		break;
-	}
-}
-
-void Enemy::m_idle()
-{
-	setState(IDLE);
-	//m_Stateframes = 0;
-	m_StateframesMax = 120;
-	if (m_Stateframes >= m_StateframesMax)
-	{
-		m_Stateframes = 0;
-	setBehaviour(BehaviourState::PATROL);
-	}
-	m_Stateframes++;
-
-}
-
-void Enemy::m_patrol()
-{
-	setState(SEEK);
-	
-	m_maxSpeed = 2.0f;
-	if (m_arrived)
-	{
-		m_specialnumber = rand() % 4;
-	}
-	if (canDetect())
-		setBehaviour(BehaviourState::ATTACK);
-}
-
-void Enemy::m_attack()
-{
-	setState(SEEK);
-	m_maxSpeed = 3.0f;
-	if (m_arrived)
-	{
-	//m_bite();
-		setBehaviour(BehaviourState::IDLE2);
-	}
-}
-
-void Enemy::m_bite()
-{
-
-
-}
-
-void Enemy::m_cower()
-{
-	setState(SEEK);
-	m_maxSpeed = 2.0f;
-	if (m_arrived)
-	{
-		setBehaviour(BehaviourState::IDLE2);
-	}
-
-}
-
-void Enemy::m_checkHealth()
-{
-	if (m_iCurrentHealth <= m_iTotalHealth / 2 && canCower)
-	{
-		setBehaviour(BehaviourState::COWER);
-		canCower = false;
 	}
 }
 

@@ -4,6 +4,7 @@
 
 #include "PathFindingDisplayObject.h"
 #include "Animation.h"
+#include "Collider.h"
 #include "SpriteSheet.h"
 #include "AnimationState.h"
 #include "BehaviourState.h"
@@ -19,8 +20,16 @@ public:
 
 	// Inherited via GameObject
 	virtual void draw() = 0;
-	virtual void update() override;
+	virtual void update() = 0;
 	virtual void clean() override;
+
+	//virtual enemy functions
+	void m_checkBehaviourState();
+	virtual void m_idle() = 0;
+	virtual void m_patrol() = 0;
+	virtual void m_attack() = 0;
+	virtual void m_cower() = 0;
+	virtual void m_checkHealth() = 0;
 
 	void move();
 	//void accelerate();
@@ -50,10 +59,17 @@ public:
 	int getDamage();
 	bool changeHealth(int change);
 	int getPtsValue();
+	Collider* getCollider() { return m_meleeCollisionBox; }
 
 	int randomnum;
 	unsigned int DisplayListIndexInScene;
+	bool canDamage;
+	glm::vec2 m_playersPos;
+	glm::vec2 m_nearestCoverTile;
+	glm::vec2 m_furthestCoverTile;
+	glm::vec2 m_patrolPoint;
 protected:
+	Collider* m_meleeCollisionBox;
 	bool canCower;
 	bool m_arrived;
 	float m_fScaleFactor;
@@ -80,13 +96,7 @@ protected:
 
 	// DEcision making Functions
 
-	void m_checkBehaviourState();
-	void m_idle();
-	void m_patrol();
-	void m_attack();
-	void m_bite();
-	void m_cower();
-	void m_checkHealth();
+
 
 	// steering behaviour functions
 	void m_checkSteeringState();

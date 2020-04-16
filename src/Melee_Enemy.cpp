@@ -15,6 +15,7 @@ Melee_Enemy::Melee_Enemy()
 		"../Assets/sprites/wolf.png", "wolfspritesheet", TheGame::Instance()->getRenderer());
 
 	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("wolfspritesheet");
+	m_meleeCollisionBox = new Collider;
 	m_buildAnimations();
 	// set frame width
 	setWidth(40);
@@ -25,10 +26,12 @@ Melee_Enemy::Melee_Enemy()
 	setVelocity(glm::vec2(0.0f, 0.0f));
 	setIsColliding(false);
 	setType(GameObjectType::MELEE_ENEMY);
+	m_meleeCollisionBox->setPosition(glm::vec2{ 500,1000 });
+	m_meleeCollisionBox->setHeight(50);
+	m_meleeCollisionBox->setWidth(50);
 
 	m_currentHeading = rand() % 360 + 1;
 	//setVelocity(m_currentDirection * 10.0f);
-	
 	
 	m_currentDirection = glm::vec2(1.0f, 0.0f);
 	m_turnRate = 3.0f;
@@ -51,7 +54,7 @@ Melee_Enemy::Melee_Enemy()
 	m_smellRadius = 100.0f;
 	m_fFOV = 40;
 
-	m_iDamage = 10;
+	m_iDamage = -10;
 	m_iPtsValue = 25;
 }
 
@@ -64,8 +67,9 @@ void Melee_Enemy::draw()
 	{
 	case WOLF_IDLE:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["idle"],
-			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.5f,
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.2f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+
 		break;
 	case WOLF_WALK:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["walk"],
@@ -81,16 +85,21 @@ void Melee_Enemy::draw()
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["bite"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["bite"].m_currentFrame, 0.12f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+		break;
 	}
 
 	m_HealthBar->draw();
 
-	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle));
-	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * m_feelerLength);
-	Util::DrawLine(getPosition(), getTargetPosition());
-	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
-	Util::DrawCircle(getPosition(), getHeight() * m_fScaleFactor);
-	Util::DrawCircle(getPosition(), getSmellRadius());
+	if (TheGame::Instance()->getDebugMode())
+	{
+		Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle));
+		Util::DrawLine(getPosition(), getPosition() + m_currentDirection * m_feelerLength);
+		Util::DrawLine(getPosition(), getTargetPosition());
+		Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
+		Util::DrawCircle(getPosition(), getHeight() * m_fScaleFactor);
+		Util::DrawCircle(getPosition(), getSmellRadius());
+		Util::DrawCircle(m_meleeCollisionBox->getPosition(), m_meleeCollisionBox->getWidth());
+	}
 }
 
 void Melee_Enemy::m_buildAnimations()
@@ -136,4 +145,97 @@ void Melee_Enemy::m_buildAnimations()
 	m_pAnimations["bite"] = biteAnimation;
 }
 
+void Melee_Enemy::m_attack()
+{
+	m_targetPosition = m_playersPos;
+	setState(SEEK);
+	m_maxSpeed = 3.0f;
+	if (m_arrived)
+	{
+		setAnimState(WOLF_BITE);
+		glm::vec2 tempos = Util::rotateVector(m_currentDirection, 0);
+		tempos = Util::normalize(tempos);
+		m_meleeCollisionBox->setPosition(glm::vec2{ getPosition().x + (tempos.x * 50.0f), getPosition().y + (tempos.y * 50.0f) });
+		//m_bite();
+		setBehaviour(BehaviourState::IDLE2);
+	}
+	
+}
+
+void Melee_Enemy::m_idle()
+{
+	setState(IDLE);
+	setAnimState(WOLF_IDLE);
+	//m_Stateframes = 0;
+	m_StateframesMax = 120;
+	if (m_Stateframes >= m_StateframesMax)
+	{
+		m_Stateframes = 0;
+		setBehaviour(BehaviourState::PATROL);
+	}
+	m_Stateframes++;
+
+}
+
+void Melee_Enemy::m_patrol()
+{
+	m_targetPosition = m_patrolPoint;
+	setState(SEEK);
+	setAnimState(WOLF_WALK);
+	m_maxSpeed = 2.0f;
+	if (m_arrived)
+	{
+		m_specialnumber = rand() % 4;
+	}
+	if (canDetect())
+		setBehaviour(BehaviourState::ATTACK);
+}
+
+void Melee_Enemy::m_cower()
+{
+	m_targetPosition = m_furthestCoverTile;
+	setState(SEEK);
+	m_maxSpeed = 2.0f;
+	if (m_arrived)
+	{
+		setBehaviour(BehaviourState::IDLE2);
+	}
+
+}
+
+void Melee_Enemy::m_checkHealth()
+{
+	if (m_iCurrentHealth <= m_iTotalHealth / 2 && canCower)
+	{
+		setBehaviour(BehaviourState::COWER);
+		canCower = false;
+	}
+}
+
+void Melee_Enemy::update()
+{
+	m_checkHealth();
+	m_checkBehaviourState();
+	m_checkSteeringState();
+	m_checkBounds();
+	m_HealthBar->update();
+	switch(getAnimState())
+	{
+	case WOLF_BITE:
+		m_meleeCollisionBox->setPosition(glm::vec2{ getPosition().x + (m_currentDirection.x * 50.0f), getPosition().y + (m_currentDirection.y * 50.0f) });
+		break;
+	case WOLF_IDLE:
+		m_meleeCollisionBox->setPosition(glm::vec2{ 500,1000 });
+		break;
+	case WOLF_RUN:
+		m_meleeCollisionBox->setPosition(glm::vec2{ 500,1000 });
+
+		break;
+	}
+
+	//std::cout << "STEERINGSTATE: " << getState() << std::endl;
+	//std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
+	//std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
+
+}
 
