@@ -4,6 +4,7 @@
 
 Ranged_Enemy::Ranged_Enemy()
 {
+	canShoot = true;
 	playerDistance = 0;
 	m_iTotalHealth = 80;
 	m_iCurrentHealth = 80;
@@ -30,8 +31,10 @@ Ranged_Enemy::Ranged_Enemy()
 	setVelocity(glm::vec2(0.0f, 0.0f));
 	setIsColliding(false);
 	setType(GameObjectType::RANGED_ENEMY);
+	m_shootFrame = 0;
+	m_shootFrameMax = 120;
 
-	m_currentHeading = rand() % 360 + 1;
+	m_currentHeading = 90;
 	//setVelocity(m_currentDirection * 10.0f);
 	m_maxSpeed = 3.0f;
 	m_currentDirection = glm::vec2(1.0f, 0.0f);
@@ -45,7 +48,7 @@ Ranged_Enemy::Ranged_Enemy()
 	m_feelerLength = 50.0f;
 	m_distanceToTarget = 0.0f;
 	m_arrivalRadius = 100.0f;
-	m_arrivalTarget = 40.0f;
+	m_arrivalTarget = 10.0f;
 	m_avoidEndFrame = 0;
 	m_avoidEndFrameMax = 10;
 	m_numFramesAvoiding = 0;
@@ -55,6 +58,10 @@ Ranged_Enemy::Ranged_Enemy()
 
 	m_iDamage = -10;
 	m_iPtsValue = 50;
+
+	bulletspawnPos = glm::vec2(getPosition().x + 24, getPosition().y + 16);
+	directionvector = { bulletspawnPos.x - getPosition().x, bulletspawnPos.y - getPosition().y };
+	mag = Util::magnitude(directionvector);
 }
 
 void Ranged_Enemy::draw()
@@ -67,33 +74,42 @@ void Ranged_Enemy::draw()
 	case WOLF_IDLE:
 		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["idle"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.5f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading + 180, 255, true);
 		break;
 	case WOLF_WALK:
 		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["walk"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["walk"].m_currentFrame, 0.25f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading + 180, 255, true);
 		break;
 	case WOLF_RUN:
 		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["walk"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["walk"].m_currentFrame, 0.25f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading + 180, 255, true);
 		break;
 	case WOLF_BITE:
 		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["shoot"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["shoot"].m_currentFrame, 0.5f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading + 180, 255, true);
 		break;
 	}
 
-	m_HealthBar->draw();
+	for (int i = 0; i < m_pBulletvec.size(); i++)
+	{
+		if (m_pBulletvec[i] != nullptr)
+			m_pBulletvec[i]->draw();
+	}
 
+	m_HealthBar->draw();
+	glm::vec2 directionvector = bulletspawnPos - getPosition();
+	float mag = Util::magnitude(directionvector);
+	glm::vec2 dv2 = Util::normalize(directionvector);
+	Util::DrawLine(getPosition(), getPosition() + dv2 * mag);
 	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle));
 	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * m_feelerLength);
 	Util::DrawLine(getPosition(), getTargetPosition());
 	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
-	Util::DrawCircle(getPosition(), getHeight() * m_fScaleFactor);
-	Util::DrawCircle(getPosition(), getSmellRadius());
+	Util::DrawCircle(getPosition(), getHeight());
+	Util::DrawCircle(getPosition(), 350);
 }
 
 void Ranged_Enemy::m_buildAnimations()
@@ -130,19 +146,29 @@ void Ranged_Enemy::m_buildAnimations()
 void Ranged_Enemy::m_attack()
 {
 	m_targetPosition = m_playersPos;
-	if (playerDistance <= 350)
-		setState(FLEE);
-	else
-		setState(IDLE);
-	m_maxSpeed = 1.5f;
-	if (m_arrived)
+	if (playerDistance <= 300)
 	{
-		setAnimState(WOLF_BITE);
-		glm::vec2 tempos = Util::rotateVector(m_currentDirection, 0);
-		tempos = Util::normalize(tempos);
-		m_meleeCollisionBox->setPosition(glm::vec2{ getPosition().x + (tempos.x * 50.0f), getPosition().y + (tempos.y * 50.0f) });
-		//m_bite();
-		setBehaviour(BehaviourState::IDLE2);
+		setAnimState(WOLF_RUN);
+		setState(FLEE);
+	}
+	else
+		setState(SEEK);
+	m_maxSpeed = 1.5f;
+	if (hasLOS() && playerDistance >= 250 && playerDistance <= 300)
+	{	
+		setState(IDLE);
+		m_maxSpeed = 0.0f;
+		if (m_shootFrame >= m_shootFrameMax)
+		{
+			setAnimState(WOLF_BITE);
+			canShoot = false;
+			m_pBulletvec.push_back(new Bullet(bulletspawnPos, m_currentHeading + 90, m_iDamage));
+			m_shootFrame = 0;
+		}
+		m_shootFrame++;
+		//setAnimState(WOLF_IDLE);
+		canShoot = true;
+		//setBehaviour(BehaviourState::IDLE2);
 	}
 }
 
@@ -207,15 +233,41 @@ void Ranged_Enemy::m_checkHealth()
 	}
 }
 
+void Ranged_Enemy::updatebulletspawn()
+{
+	glm::vec2 tempos2 = Util::rotateVector(m_currentDirection, 24.785);
+	tempos2 = Util::normalize(tempos2);
+	bulletspawnPos = { getPosition().x + (tempos2.x * mag), getPosition().y + (tempos2.y * mag) };
+
+}
+
+
 void Ranged_Enemy::update()
 {
 	playerDistance = Util::distance(getPosition(), m_playersPos);
 	m_checkHealth();
+	updatebulletspawn();
 	m_checkBehaviourState();
 	m_checkSteeringState();
 	m_checkBounds();
 	m_HealthBar->update();
+		if (m_pAnimations["shoot"].m_currentFrame == (int)m_pAnimations["shoot"].frames.size() - 1)
+		{
+			m_pAnimations["shoot"].m_currentFrame = 0;
+			setAnimState(WOLF_IDLE);
+		}
+	
 
+	for (int i = 0; i < (int)m_pBulletvec.size(); i++)
+	{
+		m_pBulletvec[i]->update();
+		if (m_pBulletvec[i]->m_checkBounds())
+		{
+			delete m_pBulletvec[i];
+			m_pBulletvec[i] = nullptr;
+			m_pBulletvec.erase(m_pBulletvec.begin() + i);
+		}
+	}
 	std::cout << "STEERINGSTATE: " << getState() << std::endl;
 	std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
 	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;

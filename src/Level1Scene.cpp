@@ -44,10 +44,19 @@ void Level1Scene::update()
 
 	if (m_pEnemyVec.size() == 0)
 	{
-		m_pEnemyVec.push_back(new Melee_Enemy());
-		addChild(m_pEnemyVec.back());
-		m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
-		m_spawnObject(m_pEnemyVec.back());
+		int temp = rand() % 2;
+		if (temp == 0)
+		{
+			m_pEnemyVec.push_back(new Ranged_Enemy());
+			addChild(m_pEnemyVec.back());
+			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+		}
+		else if (temp == 1)
+		{
+			m_pEnemyVec.push_back(new Melee_Enemy());
+			addChild(m_pEnemyVec.back());
+			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+		}
 	}
 }
 
@@ -165,8 +174,9 @@ void Level1Scene::handleEvents()
 					m_pPlayer->canShoot = true;
 					m_pPlayer->turnaround();
 					
-
 				}
+				if (keyPressed == SDLK_x)
+					TheGame::Instance()->changeSceneState(SceneState::START_SCENE);
 				
 			}
 			
@@ -195,7 +205,7 @@ void Level1Scene::start()
 {
 	m_buildGrid();
 	m_mapTiles();
-	for (int i = 0; i < 12; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		m_pObstacleVec.push_back(new Obstacle());
 		addChild(m_pObstacleVec.back());
@@ -204,9 +214,19 @@ void Level1Scene::start()
 	m_spawnObstacles();
 	for (int i = 0; i < 1; i++)
 	{
-		m_pEnemyVec.push_back(new Ranged_Enemy());
-		addChild(m_pEnemyVec.back());
-		m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+		int temp = rand() % 2;
+		if (temp == 0)
+		{
+			m_pEnemyVec.push_back(new Ranged_Enemy());
+			addChild(m_pEnemyVec.back());
+			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+		}
+		else if (temp == 1)
+		{
+			m_pEnemyVec.push_back(new Melee_Enemy());
+			addChild(m_pEnemyVec.back());
+			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+		}
 	}
 	for (int i = 0; i < 4; i++)
 	{
