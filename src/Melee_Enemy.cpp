@@ -67,7 +67,7 @@ void Melee_Enemy::draw()
 	{
 	case WOLF_IDLE:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["idle"],
-			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.5f,
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.2f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		
 		break;
@@ -85,6 +85,7 @@ void Melee_Enemy::draw()
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["bite"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["bite"].m_currentFrame, 0.12f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+		break;
 	}
 
 	m_HealthBar->draw();
@@ -178,9 +179,9 @@ void Melee_Enemy::update()
 		break;
 	}
 
-	std::cout << "STEERINGSTATE: " << getState() << std::endl;
+	/*std::cout << "STEERINGSTATE: " << getState() << std::endl;
 	std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
-	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
+	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;*/
 
 }
 

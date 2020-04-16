@@ -4,19 +4,23 @@
 
 Ranged_Enemy::Ranged_Enemy()
 {
-	m_iTotalHealth = 50;
-	m_iCurrentHealth = 50;
+	m_iTotalHealth = 70;
+	m_iCurrentHealth = 70;
 	m_HealthBar = new HealthBar(*this, m_iCurrentHealth, m_iTotalHealth, 0.5f, { 255, 0, 0, 192 });
-	m_fScaleFactor = 0.5f;
+	m_fScaleFactor = 2.0f;
 
-	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/wolf.txt",
-		"../Assets/sprites/wolf.png", "wolfspritesheet", TheGame::Instance()->getRenderer());
+	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/mech-Sheet.txt",
+		"../Assets/sprites/mech-Sheet.png", "mechspritesheet", TheGame::Instance()->getRenderer());
 
-	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("wolfspritesheet");
+	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("mechspritesheet");
 	m_buildAnimations();
+	m_meleeCollisionBox = new Collider;
+	m_meleeCollisionBox->setPosition(glm::vec2{ 500,1000 });
+	m_meleeCollisionBox->setHeight(50);
+	m_meleeCollisionBox->setWidth(50);
 	// set frame width
 	setWidth(40);
-
+	setAnimState(WOLF_IDLE);
 	// set frame height
 	setHeight(40);
 	setPosition(glm::vec2(0.0f, 0.0f));
@@ -29,7 +33,7 @@ Ranged_Enemy::Ranged_Enemy()
 	m_maxSpeed = 3.0f;
 	m_currentDirection = glm::vec2(1.0f, 0.0f);
 	m_turnRate = 3.0f;
-
+	setBehaviour(BehaviourState::PATROL);
 	//setAcceleration(glm::vec2(0.1f, 0.0f));
 	setState(SteeringState::SEEK);
 	setTargetPosition({ 0, 0 });
@@ -46,7 +50,7 @@ Ranged_Enemy::Ranged_Enemy()
 	m_smellRadius = 100.0f;
 	m_fFOV = 40;
 
-	m_iDamage = 10;
+	m_iDamage = -10;
 	m_iPtsValue = 50;
 }
 
@@ -58,24 +62,20 @@ void Ranged_Enemy::draw()
 	switch (m_currentAnimationState)
 	{
 	case WOLF_IDLE:
-		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["idle"],
+		TheTextureManager::Instance()->playAnimation("mechspritesheet", m_pAnimations["idle"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.5f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
-	case WOLF_WALK:
-		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["walk"],
-			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["run"].m_currentFrame, 0.25f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
-		break;
 	case WOLF_RUN:
-		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["run"],
-			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["run"].m_currentFrame, 0.5f,
+		TheTextureManager::Instance()->playAnimation("mechspritesheet", m_pAnimations["walk"],
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["walk"].m_currentFrame, 0.25f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		break;
 	case WOLF_BITE:
-		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["bite"],
-			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["bite"].m_currentFrame, 0.12f,
+		TheTextureManager::Instance()->playAnimation("mechspritesheet", m_pAnimations["shoot"],
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["shoot"].m_currentFrame, 0.5f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+		break;
 	}
 
 	m_HealthBar->draw();
@@ -92,40 +92,47 @@ void Ranged_Enemy::m_buildAnimations()
 	Animation idleAnimation = Animation();
 
 	idleAnimation.name = "idle";
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-1"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-2"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-3"));
-	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-idle-4"));
+	idleAnimation.frames.push_back(m_pSpriteSheet->getFrame("Mech-Walk-2"));
 
 	m_pAnimations["idle"] = idleAnimation;
-
-	Animation runAnimation = Animation();
-
-	runAnimation.name = "run";
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-1"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-2"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-3"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-4"));
-	runAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-run-5"));
-	m_pAnimations["run"] = runAnimation;
 
 	Animation walkAnimation = Animation();
 
 	walkAnimation.name = "walk";
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-1"));
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-2"));
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-3"));
-	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-walk-4"));
+	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("Mech-Walk-1"));
+	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("Mech-Walk-2"));
+	walkAnimation.frames.push_back(m_pSpriteSheet->getFrame("Mech-Walk-3"));
 
 	m_pAnimations["walk"] = walkAnimation;
 
-	Animation biteAnimation = Animation();
+	Animation shootAnimation = Animation();
 
-	biteAnimation.name = "bite";
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-1"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-2"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-3"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-4"));
-	biteAnimation.frames.push_back(m_pSpriteSheet->getFrame("wolf-bite-5"));
-	m_pAnimations["bite"] = biteAnimation;
+	shootAnimation.name = "shoot";
+	shootAnimation.frames.push_back(m_pSpriteSheet->getFrame("Mech-Shoot-1"));
+	shootAnimation.frames.push_back(m_pSpriteSheet->getFrame("Mech-Shoot-2"));
+	shootAnimation.frames.push_back(m_pSpriteSheet->getFrame("Mech-Shoot-3"));
+	shootAnimation.frames.push_back(m_pSpriteSheet->getFrame("Mech-Shoot-4"));
+	shootAnimation.frames.push_back(m_pSpriteSheet->getFrame("Mech-Shoot-5"));
+
+	m_pAnimations["shoot"] = shootAnimation;
+
+}
+
+void Ranged_Enemy::m_attack()
+{
+
+}
+
+void Ranged_Enemy::update()
+{
+	m_checkHealth();
+	m_checkBehaviourState();
+	m_checkSteeringState();
+	m_checkBounds();
+	m_HealthBar->update();
+
+	std::cout << "STEERINGSTATE: " << getState() << std::endl;
+	std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
+	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
+
 }

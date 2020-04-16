@@ -9,6 +9,7 @@
 #include "Player.h"
 #include "Obstacle.h"
 #include "Melee_Enemy.h"
+#include "Ranged_Enemy.h"
 #include "PatrolPoint.h"
 
 class Level1Scene : public Scene

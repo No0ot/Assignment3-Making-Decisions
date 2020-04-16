@@ -211,7 +211,7 @@ void Level1Scene::start()
 	m_spawnObstacles();
 	for (int i = 0; i < 1; i++)
 	{
-		m_pEnemyVec.push_back(new Melee_Enemy());
+		m_pEnemyVec.push_back(new Ranged_Enemy());
 		addChild(m_pEnemyVec.back());
 		m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
 	}

@@ -12,7 +12,7 @@ private:
 public:
 	virtual void update() override;
 	Melee_Enemy();
-	void draw();
+	virtual void draw() override;
 	void m_buildAnimations();
 
 	virtual void m_attack() override;

@@ -1,0 +1,8 @@
+Mech-Shoot-1 0 81 45 44
+Mech-Shoot-2 0 39 44 42
+Mech-Shoot-3 0 0 43 39
+Mech-Shoot-4 0 125 46 46 
+Mech-Shoot-5 45 81 46 44
+Mech-Walk-1 43 0 44 39
+Mech-Walk-2 46 125 52 46
+Mech-Walk-3 44 39 48 42

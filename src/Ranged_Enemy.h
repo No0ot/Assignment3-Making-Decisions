@@ -7,9 +7,12 @@ class Ranged_Enemy final : public Enemy
 {
 private:
 public:
+	virtual void update() override;
 	Ranged_Enemy();
-	void draw();
+	virtual void draw() override;
 	void m_buildAnimations();
+
+	virtual void m_attack() override;
 };
 
 #endif // !__Ranged_Enemy__
