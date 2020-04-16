@@ -66,7 +66,6 @@ private:
 	glm::vec2 m_currentDirection;
 	glm::vec2 m_targetPosition;
 	glm::vec2 bulletspawnPos;
-	float spawnangle;
 	glm::vec2 directionvector;
 	float mag;
 

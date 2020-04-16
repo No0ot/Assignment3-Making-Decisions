@@ -67,7 +67,7 @@ void Melee_Enemy::draw()
 	{
 	case WOLF_IDLE:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["idle"],
-			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.5f,
+			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.2f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
 		
 		break;
@@ -85,6 +85,7 @@ void Melee_Enemy::draw()
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["bite"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["bite"].m_currentFrame, 0.12f,
 			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+		break;
 	}
 
 	m_HealthBar->draw();
@@ -143,6 +144,7 @@ void Melee_Enemy::m_buildAnimations()
 
 void Melee_Enemy::m_attack()
 {
+	m_targetPosition = m_playersPos;
 	setState(SEEK);
 	m_maxSpeed = 3.0f;
 	if (m_arrived)
@@ -155,6 +157,56 @@ void Melee_Enemy::m_attack()
 		setBehaviour(BehaviourState::IDLE2);
 	}
 	
+}
+
+void Melee_Enemy::m_idle()
+{
+	setState(IDLE);
+	setAnimState(WOLF_IDLE);
+	//m_Stateframes = 0;
+	m_StateframesMax = 120;
+	if (m_Stateframes >= m_StateframesMax)
+	{
+		m_Stateframes = 0;
+		setBehaviour(BehaviourState::PATROL);
+	}
+	m_Stateframes++;
+
+}
+
+void Melee_Enemy::m_patrol()
+{
+	m_targetPosition = m_patrolPoint;
+	setState(SEEK);
+	setAnimState(WOLF_WALK);
+	m_maxSpeed = 2.0f;
+	if (m_arrived)
+	{
+		m_specialnumber = rand() % 4;
+	}
+	if (canDetect())
+		setBehaviour(BehaviourState::ATTACK);
+}
+
+void Melee_Enemy::m_cower()
+{
+	m_targetPosition = m_furthestCoverTile;
+	setState(SEEK);
+	m_maxSpeed = 2.0f;
+	if (m_arrived)
+	{
+		setBehaviour(BehaviourState::IDLE2);
+	}
+
+}
+
+void Melee_Enemy::m_checkHealth()
+{
+	if (m_iCurrentHealth <= m_iTotalHealth / 2 && canCower)
+	{
+		setBehaviour(BehaviourState::COWER);
+		canCower = false;
+	}
 }
 
 void Melee_Enemy::update()
@@ -178,9 +230,9 @@ void Melee_Enemy::update()
 		break;
 	}
 
-	std::cout << "STEERINGSTATE: " << getState() << std::endl;
+	/*std::cout << "STEERINGSTATE: " << getState() << std::endl;
 	std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
-	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
+	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;*/
 
 }
 

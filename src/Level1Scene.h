@@ -9,6 +9,7 @@
 #include "Player.h"
 #include "Obstacle.h"
 #include "Melee_Enemy.h"
+#include "Ranged_Enemy.h"
 #include "PatrolPoint.h"
 
 class Level1Scene : public Scene
@@ -34,6 +35,7 @@ public:
 	glm::vec2 getNearestPatrolPoint(const glm::vec2 position);
 	glm::vec2 getRandomPatrolPoint(int number);
 	glm::vec2 getNearestCoverPoint(const glm::vec2 position);
+	glm::vec2 getFurthestCoverPoint(const glm::vec2 position);
 	void updateEnemyTargets();
 private:
 	glm::vec2 RandomPatrolPoint;

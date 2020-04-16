@@ -39,22 +39,24 @@ void Level1Scene::update()
 	}
 	updateEnemyTargets();
 	m_checkCollisions();
-	for (unsigned int j = 0; j < m_pEnemyVec.size(); j++)
-	{
-		float distance = Util::distance(m_pEnemyVec[j]->getPosition(), m_pPlayer->getPosition());
-		if (m_pEnemyVec[j]->getBehaviour() == BehaviourState::FLEE && distance > 450)
-		{
-			m_pEnemyVec[j]->setBehaviour(BehaviourState::COWER);
-		}
-	}
+
 	m_PtsBar.update();
 
 	if (m_pEnemyVec.size() == 0)
 	{
-		m_pEnemyVec.push_back(new Melee_Enemy());
-		addChild(m_pEnemyVec.back());
-		m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
-		m_spawnObject(m_pEnemyVec.back());
+		int temp = rand() % 2;
+		if (temp == 0)
+		{
+			m_pEnemyVec.push_back(new Ranged_Enemy());
+			addChild(m_pEnemyVec.back());
+			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+		}
+		else if (temp == 1)
+		{
+			m_pEnemyVec.push_back(new Melee_Enemy());
+			addChild(m_pEnemyVec.back());
+			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+		}
 	}
 }
 
@@ -172,8 +174,9 @@ void Level1Scene::handleEvents()
 					m_pPlayer->canShoot = true;
 					m_pPlayer->turnaround();
 					
-
 				}
+				if (keyPressed == SDLK_x)
+					TheGame::Instance()->changeSceneState(SceneState::START_SCENE);
 				
 			}
 			
@@ -202,7 +205,7 @@ void Level1Scene::start()
 {
 	m_buildGrid();
 	m_mapTiles();
-	for (int i = 0; i < 12; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		m_pObstacleVec.push_back(new Obstacle());
 		addChild(m_pObstacleVec.back());
@@ -211,9 +214,19 @@ void Level1Scene::start()
 	m_spawnObstacles();
 	for (int i = 0; i < 1; i++)
 	{
-		m_pEnemyVec.push_back(new Melee_Enemy());
-		addChild(m_pEnemyVec.back());
-		m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+		int temp = rand() % 2;
+		if (temp == 0)
+		{
+			m_pEnemyVec.push_back(new Ranged_Enemy());
+			addChild(m_pEnemyVec.back());
+			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+		}
+		else if (temp == 1)
+		{
+			m_pEnemyVec.push_back(new Melee_Enemy());
+			addChild(m_pEnemyVec.back());
+			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+		}
 	}
 	for (int i = 0; i < 4; i++)
 	{
@@ -489,6 +502,31 @@ glm::vec2 Level1Scene::getNearestCoverPoint(const glm::vec2 position)
 	{
 		glm::vec2 currentTilePosition = m_pTilesBehindCover[i]->getPosition();
 		float sqrmagFromCurrent = Util::squaredMagnitude(currentTilePosition - position);
+		if (sqrmagFromCurrent < sqrmagFromCover)
+		{
+			nearestCoverPoint = currentTilePosition;
+			sqrmagFromCover = sqrmagFromCurrent;
+		}
+	}
+
+	return nearestCoverPoint;
+}
+
+glm::vec2 Level1Scene::getFurthestCoverPoint(const glm::vec2 position)
+{
+	if (m_pTilesBehindCover.empty())
+	{
+		std::cout << "There were no tiles behind cover!" << std::endl;
+		return position;
+	}
+
+	glm::vec2 nearestCoverPoint = m_pTilesBehindCover[0]->getPosition();
+	float sqrmagFromCover = Util::squaredMagnitude(nearestCoverPoint - position);
+
+	for (unsigned int i = 1; i < m_pTilesBehindCover.size(); i++)
+	{
+		glm::vec2 currentTilePosition = m_pTilesBehindCover[i]->getPosition();
+		float sqrmagFromCurrent = Util::squaredMagnitude(currentTilePosition - position);
 		if (sqrmagFromCurrent > sqrmagFromCover)
 		{
 			nearestCoverPoint = currentTilePosition;
@@ -534,19 +572,10 @@ void Level1Scene::updateEnemyTargets()
 {
 	for (unsigned int j = 0; j < m_pEnemyVec.size(); j++)
 	{
-		
-		switch (m_pEnemyVec[j]->getBehaviour())
-		{
-		case BehaviourState::PATROL:
-			m_pEnemyVec[j]->setTargetPosition(getRandomPatrolPoint(m_pEnemyVec[j]->getMySpecialNumber()));
-			break;
-		case BehaviourState::ATTACK:
-			m_pEnemyVec[j]->setTargetPosition(m_pPlayer->getPosition());
-			break;
-		case BehaviourState::COWER:
-			m_pEnemyVec[j]->setTargetPosition(getNearestCoverPoint(m_pPlayer->getPosition()));
-			break;
-		}
+		m_pEnemyVec[j]->m_playersPos = m_pPlayer->getPosition();
+		m_pEnemyVec[j]->m_nearestCoverTile = getNearestCoverPoint(m_pEnemyVec[j]->getPosition());
+		m_pEnemyVec[j]->m_furthestCoverTile = getFurthestCoverPoint(m_pPlayer->getPosition());
+		m_pEnemyVec[j]->m_patrolPoint = getRandomPatrolPoint(m_pEnemyVec[j]->getMySpecialNumber());
 
 	}
 }
