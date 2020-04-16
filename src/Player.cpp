@@ -3,7 +3,9 @@
 #include "Util.h"
 #include <iostream>
 
-Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_iCurrentHealth(75), m_HealthBar(*this, m_iCurrentHealth, m_iTotalHealth), m_fScaleFactor(0.8)
+Player::Player()
+	: m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_iCurrentHealth(75), m_HealthBar(*this, m_iCurrentHealth, m_iTotalHealth),
+	m_fScaleFactor(0.8)
 {
 	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/atlas.txt",
 		"../Assets/sprites/atlas.png", "spritesheet", TheGame::Instance()->getRenderer());
@@ -26,7 +28,7 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_i
 	m_meleeCollisionBox->setPosition(glm::vec2{500,1000});
 	m_meleeCollisionBox->setHeight(65);
 	m_meleeCollisionBox->setWidth(65);
-	m_maxSpeed = 10.0f;
+	m_maxSpeed = 5.0f;
 	m_currentHeading = 0.0f;
 	m_currentDirection = glm::vec2(1.0f, 0.0f);
 	m_turnRate = 20.0f;
@@ -37,6 +39,13 @@ Player::Player(): m_currentAnimationState(PLAYER_IDLE), m_iTotalHealth(100), m_i
 
 	m_iRangedDamage = 10;
 	m_iMeleeDamage = 25;
+
+	m_iMeleeFrame = 0;
+	m_iMeleeFramesMax = 104;
+	m_iRangedFrame = 0;
+	m_iRangedFramesMax = 39;
+
+	m_playerControlState = true;
 }
 
 Player::~Player()
@@ -75,34 +84,63 @@ void Player::draw()
 		if(m_pBulletvec[i] != nullptr)
 		m_pBulletvec[i]->draw();
 	}
-	glm::vec2 directionvector = bulletspawnPos - getPosition();
-	float mag = Util::magnitude(directionvector);
-	glm::vec2 dv2 = Util::normalize(directionvector);
-	Util::DrawLine(getPosition(), getPosition() +  dv2 *  mag);
-	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * mag);
-	Util::DrawCircle(getPosition(), getHeight() * 0.7);
-	Util::DrawCircle(m_meleeCollisionBox->getPosition() , m_meleeCollisionBox->getWidth());
-	
+
 	m_HealthBar.draw();
+
+	if (TheGame::Instance()->getDebugMode())
+	{
+		glm::vec2 directionvector = bulletspawnPos - getPosition();
+		float mag = Util::magnitude(directionvector);
+		glm::vec2 dv2 = Util::normalize(directionvector);
+		Util::DrawLine(getPosition(), getPosition() + dv2 * mag);
+		Util::DrawLine(getPosition(), getPosition() + m_currentDirection * mag);
+		Util::DrawCircle(getPosition(), getHeight() * 0.7);
+		Util::DrawCircle(m_meleeCollisionBox->getPosition(), m_meleeCollisionBox->getWidth());
+	}
 }
 
 void Player::update()
 {
+	if (m_playerControlState == true)
+	{
+		mouseLook();
+	}
+	accelerate();
 	move();
 	m_checkBounds();
+
 	if (m_pAnimations["melee"].m_currentFrame == (int)m_pAnimations["melee"].frames.size() - 1)
 	{
 		m_pAnimations["melee"].m_currentFrame = 0;
-		m_meleeCollisionBox->setPosition(glm::vec2{ 500,1000 });
-		canMelee = true;
 		setAnimationState(PLAYER_IDLE);
 	}
+
 	if (m_pAnimations["shoot"].m_currentFrame == (int)m_pAnimations["shoot"].frames.size() - 1)
 	{
 		m_pAnimations["shoot"].m_currentFrame = 0;
-		canShoot = true;
 		setAnimationState(PLAYER_IDLE);
 	}
+
+
+	if (m_iMeleeFrame == m_iMeleeFramesMax - 1)
+	{
+		m_meleeCollisionBox->setPosition(glm::vec2{ 500,1000 });
+		canMelee = true;
+	}
+	else
+	{
+		m_iMeleeFrame++;
+	}
+
+	if (m_iRangedFrame == m_iRangedFramesMax - 1)
+	{
+		canShoot = true;
+	}
+	else
+	{
+		m_iRangedFrame++;
+	}
+
 	for (int i = 0; i < (int)m_pBulletvec.size(); i++)
 	{
 		m_pBulletvec[i]->update();
@@ -127,6 +165,7 @@ void Player::move()
 {
 	setPosition(getPosition() + getVelocity());
 	setVelocity(getVelocity() * 0.95f);
+
 	bulletspawnPos += getVelocity();
 }
 
@@ -162,12 +201,14 @@ std::vector<Bullet*>& Player::getBullets()
 
 void Player::moveForward()
 {
-	setVelocity(m_currentDirection * m_maxSpeed);
+	setAcceleration(m_currentDirection * m_maxSpeed);
+	//setVelocity(m_currentDirection * m_maxSpeed);
 }
 
 void Player::moveBack()
 {
-	setVelocity(m_currentDirection * -m_maxSpeed);
+	setAcceleration(m_currentDirection * -m_maxSpeed);
+	//setVelocity(m_currentDirection * -m_maxSpeed);
 }
 
 void Player::turnRight()
@@ -203,6 +244,17 @@ void Player::turnaround()
 	m_changeDirection();
 }
 
+void Player::mouseLook()
+{
+	glm::vec2 playrPos = this->getPosition();
+	glm::vec2 mousePos = TheGame::Instance()->getMousePosition();
+	glm::vec2 relative = Util::normalize(mousePos - playrPos);
+	m_currentDirection = relative;
+
+	float angle = -(SDL_atan2f(relative.x, relative.y) * Util::Rad2Deg) + 90;
+	m_currentHeading = angle;
+}
+
 void Player::updatebulletspawn()
 {
 	glm::vec2 tempos2 = Util::rotateVector(m_currentDirection,24.785);
@@ -219,6 +271,7 @@ void Player::melee()
 		glm::vec2 tempos = Util::rotateVector(m_currentDirection, angle);
 		tempos = Util::normalize(tempos);
 		m_meleeCollisionBox->setPosition(glm::vec2{ getPosition().x + (tempos.x * 50.0f), getPosition().y + (tempos.y * 50.0f) });
+		m_iMeleeFrame = 0;
 	
 }
 
@@ -227,6 +280,7 @@ void Player::shoot()
 	canShoot = false;
 	m_pBulletvec.push_back(new Bullet(bulletspawnPos, getHeading(), m_iRangedDamage));
 	//m_pBulletvec.back()->spawn();
+	m_iRangedFrame = 0;
 }
 
 bool Player::changeHealth(int change)
@@ -239,6 +293,16 @@ bool Player::changeHealth(int change)
 	return false;
 }
 
+bool Player::getControlState() const
+{
+	return m_playerControlState;
+}
+
+void Player::setControlState(bool state)
+{
+	m_playerControlState = state;
+}
+
 void Player::m_changeDirection()
 {
 	const auto x = cos(m_currentHeading * Util::Deg2Rad);
@@ -246,6 +310,18 @@ void Player::m_changeDirection()
 	m_currentDirection = glm::vec2(x, y);
 
 	glm::vec2 size = TheTextureManager::Instance()->getTextureSize("ship");
+}
+
+void Player::accelerate()
+{
+	glm::vec2 newVelocity = getVelocity() + getAcceleration();
+	if (Util::magnitude(newVelocity) > m_maxSpeed)
+	{
+		newVelocity = Util::normalize(newVelocity) * m_maxSpeed;
+	}
+
+	setVelocity(newVelocity);
+	setAcceleration({ 0, 0 });
 }
 
 void Player::setAnimationState(const PlayerAnimationState new_state)

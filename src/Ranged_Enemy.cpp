@@ -100,16 +100,15 @@ void Ranged_Enemy::draw()
 	}
 
 	m_HealthBar->draw();
-	glm::vec2 directionvector = bulletspawnPos - getPosition();
-	float mag = Util::magnitude(directionvector);
-	glm::vec2 dv2 = Util::normalize(directionvector);
-	Util::DrawLine(getPosition(), getPosition() + dv2 * mag);
-	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle));
-	Util::DrawLine(getPosition(), getPosition() + m_currentDirection * m_feelerLength);
-	Util::DrawLine(getPosition(), getTargetPosition());
-	Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
-	Util::DrawCircle(getPosition(), getHeight());
-	Util::DrawCircle(getPosition(), 350);
+
+	if (TheGame::Instance()->getDebugMode())
+	{
+		Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, -m_feelerAngle));
+		Util::DrawLine(getPosition(), getPosition() + m_currentDirection * m_feelerLength);
+		Util::DrawLine(getPosition(), getPosition() + Util::rotateVector(m_currentDirection * m_feelerLength, m_feelerAngle));
+		Util::DrawCircle(getPosition(), getHeight() * m_fScaleFactor);
+		Util::DrawCircle(getPosition(), getSmellRadius());
+	}
 }
 
 void Ranged_Enemy::m_buildAnimations()
