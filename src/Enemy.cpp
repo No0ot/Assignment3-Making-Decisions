@@ -315,7 +315,7 @@ bool Enemy::m_checkFeelers()
 		if (m_numFramesAvoiding >= m_maxFramesAvoiding)
 		{
 			std::cout << "Argh! I can't find a way past this!" << std::endl;
-			m_turn(m_turnRate * 20);
+			m_turn(m_turnRate);
 			
 		}
 		else

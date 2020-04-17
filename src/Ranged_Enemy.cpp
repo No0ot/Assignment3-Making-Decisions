@@ -53,6 +53,7 @@ Ranged_Enemy::Ranged_Enemy(Ranged_Enemy::Loadout& loadout)
 	m_avoidEndFrame = 0;
 	m_avoidEndFrameMax = 10;
 	m_numFramesAvoiding = 0;
+	m_maxFramesAvoiding = 30;
 
 	m_smellRadius = loadout.smell;
 	m_fFOV = loadout.FOV;
