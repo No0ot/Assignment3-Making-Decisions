@@ -7,6 +7,8 @@ Level1Scene::Level1Scene() : m_iCurrentPts(0), m_iTotalPts(100), m_PtsBar(10, 10
 {
 	Level1Scene::start();
 	TheSoundManager::Instance()->load("../Assets/audio/EnemyHit.wav", "EnemyHit", sound_type::SOUND_SFX);
+	TheSoundManager::Instance()->load("../Assets/audio/EnemyMeleed.wav", "EnemyMeleed", sound_type::SOUND_SFX);
+	TheSoundManager::Instance()->load("../Assets/audio/EnemyDie.wav", "EnemyDie", sound_type::SOUND_SFX);
 	TheSoundManager::Instance()->load("../Assets/audio/EnemyShoot", "EnemyShoot", sound_type::SOUND_SFX);
 	TheSoundManager::Instance()->load("../Assets/audio/ObstacleHit.wav", "ObstacleBumped", sound_type::SOUND_SFX);
 	TheSoundManager::Instance()->load("../Assets/audio/ObstacleShot.wav", "ObstacleShot", sound_type::SOUND_SFX);
@@ -15,6 +17,7 @@ Level1Scene::Level1Scene() : m_iCurrentPts(0), m_iTotalPts(100), m_PtsBar(10, 10
 	TheSoundManager::Instance()->load("../Assets/audio/PlayerMelee.wav", "PlayerMelee", sound_type::SOUND_SFX);
 	TheSoundManager::Instance()->load("../Assets/audio/PlayerShoot.wav", "PlayerShoot", sound_type::SOUND_SFX);
 	TheSoundManager::Instance()->load("../Assets/audio/PlayerStep.wav", "PlayerStep", sound_type::SOUND_SFX);
+
 
 
 
@@ -544,9 +547,14 @@ void Level1Scene::m_checkCollisions()
 			{
 				m_pEnemyVec[enemy]->setVelocity(m_pEnemyVec[enemy]->getVelocity() * -20.2f);
 				m_pEnemyVec[enemy]->setPosition(m_pEnemyVec[enemy]->getPosition() + m_pEnemyVec[enemy]->getVelocity());
+				TheSoundManager::Instance()->playSound("EnemyMeleed", 0);
+
+
+
 
 				if (m_pEnemyVec[enemy]->changeHealth(-m_pPlayer->m_iMeleeDamage))
 				{
+					TheSoundManager::Instance()->playSound("EnemyDie", 0);
 					removeChildByIndex(m_pEnemyVec[enemy]->DisplayListIndexInScene);
 					m_iCurrentPts += m_pEnemyVec[enemy]->getPtsValue();
 					delete m_pEnemyVec[enemy];
@@ -576,9 +584,11 @@ void Level1Scene::m_checkCollisions()
 						{
 							if (CollisionManager::circleAABBCheck(m_pEnemyVec[enemy], m_pPlayer->getBullets()[j]))
 							{
+								TheSoundManager::Instance()->playSound("EnemyHit", 0);
 								// deal damage to the enemy
 								if (m_pEnemyVec[enemy]->changeHealth(-m_pPlayer->getBullets()[j]->getDamage()))
 								{
+									TheSoundManager::Instance()->playSound("EnemyDie", 0);
 									removeChildByIndex(m_pEnemyVec[enemy]->DisplayListIndexInScene);
 									m_iCurrentPts += m_pEnemyVec[enemy]->getPtsValue();
 									delete m_pEnemyVec[enemy];
