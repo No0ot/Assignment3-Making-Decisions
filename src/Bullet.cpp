@@ -34,7 +34,7 @@ void Bullet::draw()
 {
 	TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["shoot"],
 		getPosition().x, getPosition().y, 1.0f, m_pAnimations["shoot"].m_currentFrame, 0.12f,
-		TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+		TheGame::Instance()->getRenderer(), m_currentHeading, { 255, 255, 255, 255 }, true);
 	
 	if (TheGame::Instance()->getDebugMode())
 	{

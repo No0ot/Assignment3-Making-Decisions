@@ -364,7 +364,7 @@ void TextureManager::animateFrames(int frame_width, int frame_height, const int 
 void TextureManager::playAnimation(
 	const std::string& sprite_sheet_name, Animation& animation, 
 	int x, int y, float scalefactor, int& current_frame, float speed_factor, SDL_Renderer* renderer,
-	double angle, int alpha, bool centered, SDL_RendererFlip flip)
+	double angle, SDL_Colour tint, bool centered, SDL_RendererFlip flip)
 {
 	const auto totalFrames = animation.frames.size();
 	const int animationRate = round(totalFrames / 2 / speed_factor);
@@ -416,7 +416,8 @@ void TextureManager::playAnimation(
 	destRect.w = destRect.w * scalefactor;
 	destRect.h = destRect.h * scalefactor;
 
-	SDL_SetTextureAlphaMod(m_textureMap[sprite_sheet_name].get(), alpha);
+	SDL_SetTextureColorMod(m_textureMap[sprite_sheet_name].get(), tint.r, tint.g, tint.b);
+	SDL_SetTextureAlphaMod(m_textureMap[sprite_sheet_name].get(), tint.a);
 	SDL_RenderCopyEx(renderer, m_textureMap[sprite_sheet_name].get(), &srcRect, &destRect, angle, nullptr, flip);
 }
 

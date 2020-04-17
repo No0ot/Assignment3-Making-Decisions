@@ -51,7 +51,7 @@ public:
 
 	void animateFrames(int frame_width, int frame_height, int frame_number, int row_number, float speed_factor, int &current_frame, int &current_row);
 
-	void playAnimation(const std::string& sprite_sheet_name, Animation& animation, int x, int y, float scalefactor, int& current_frame, float speed_factor, SDL_Renderer* renderer, double angle, int alpha, bool centered = false, SDL_RendererFlip flip = SDL_FLIP_NONE);
+	void playAnimation(const std::string& sprite_sheet_name, Animation& animation, int x, int y, float scalefactor, int& current_frame, float speed_factor, SDL_Renderer* renderer, double angle, SDL_Colour tint, bool centered = false, SDL_RendererFlip flip = SDL_FLIP_NONE);
 	
 	void drawText(const std::string& id, int x, int y, SDL_Renderer* renderer, double angle, int alpha, bool centered = false, SDL_RendererFlip flip = SDL_FLIP_NONE);
 

@@ -20,6 +20,8 @@ public:
 
 	void setText(const std::string& new_text);
 	void setColour(SDL_Color new_colour) const;
+	void setAlpha(Uint8 alpha);
+	Uint8 getAlpha();
 	void setSize(int new_size);
 
 private:
@@ -31,6 +33,7 @@ private:
 	bool m_isCentered = true;
 	int m_fontSize;
 	int m_fontStyle;
+	Uint8 m_alpha;
 
 	void m_buildFontID();
 };

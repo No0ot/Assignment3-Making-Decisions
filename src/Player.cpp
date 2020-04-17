@@ -61,22 +61,22 @@ void Player::draw()
 	case PLAYER_IDLE:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["idle"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.12f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading, { 255, 255, 255, 255 }, true);
 		break;
 	case PLAYER_RUN:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["run"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["run"].m_currentFrame, 0.25f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading, { 255, 255, 255, 255 }, true);
 		break;
 	case PLAYER_MELEE:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["melee"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["melee"].m_currentFrame, 1.5f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading, { 255, 255, 255, 255 }, true);
 		break;
 	case PLAYER_SHOOT:
 		TheTextureManager::Instance()->playAnimation("spritesheet", m_pAnimations["shoot"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["shoot"].m_currentFrame, 0.12f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading, { 255, 255, 255, 255 }, true);
 	}
 
 	for (int i = 0; i < m_pBulletvec.size(); i++)

@@ -79,6 +79,7 @@ protected:
 	WolfAnimationState m_currentAnimationState;
 	BehaviourState m_Behaviour;
 	std::unordered_map<std::string, Animation> m_pAnimations;
+	SDL_Colour m_tint;
 
 	float m_maxSpeed;
 	float m_turnRate;

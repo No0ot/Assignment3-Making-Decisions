@@ -6,6 +6,19 @@
 
 class Ranged_Enemy final : public Enemy
 {
+public:
+	struct Loadout
+	{
+		SDL_Colour colour;
+		float scale;
+		int health;
+		int damage;
+		float smell;
+		float FOV;
+		int value;
+		Loadout(SDL_Colour colour = { 255, 255, 255, 255 }, float scale = 2.0f, int health = 80, int damage = -10, float smell = 100.0f, float FOV = 40.0f, int value = 20)
+			: colour(colour), scale(scale), health(health), damage(damage), smell(smell), FOV(FOV), value(value) {}
+	};
 private:
 	bool quarterHealth[3];
 	float playerDistance;
@@ -19,7 +32,7 @@ private:
 	void updatebulletspawn();
 public:
 	virtual void update() override;
-	Ranged_Enemy();
+	Ranged_Enemy(Ranged_Enemy::Loadout& loadout);
 	virtual void draw() override;
 	void m_buildAnimations();
 

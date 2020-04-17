@@ -2,8 +2,8 @@
 #include "Game.h"
 
 
-Label::Label(const std::string& text, const std::string& font_name, const int font_size, const SDL_Color colour, const glm::vec2 position, const int font_style, const bool is_centered):
-	m_fontColour(colour), m_fontName(font_name), m_text(text), m_isCentered(is_centered), m_fontSize(font_size), m_fontStyle(font_style)
+Label::Label(const std::string& text, const std::string& font_name, const int font_size, const SDL_Color colour, const glm::vec2 position, const int font_style, const bool is_centered) :
+	m_fontColour(colour), m_fontName(font_name), m_text(text), m_isCentered(is_centered), m_fontSize(font_size), m_fontStyle(font_style), m_alpha(255)
 {
 	m_fontPath = "../Assets/fonts/" + font_name + ".ttf";
 
@@ -25,7 +25,7 @@ void Label::draw()
 	const int xComponent = getPosition().x;
 	const int yComponent = getPosition().y;
 	TheTextureManager::Instance()->drawText(m_fontID, xComponent, yComponent,
-		TheGame::Instance()->getRenderer(), 0, 255, m_isCentered);
+		TheGame::Instance()->getRenderer(), 0, m_alpha, m_isCentered);
 }
 
 void Label::update()
@@ -56,6 +56,16 @@ void Label::setColour(const SDL_Color new_colour) const
 {
 	FontManager::Instance()->load(m_fontPath, m_fontID, m_fontSize, m_fontStyle);
 	FontManager::Instance()->textToTexture(m_text, m_fontID, m_fontID, new_colour);
+}
+
+void Label::setAlpha(Uint8 alpha)
+{
+	m_alpha = alpha;
+}
+
+Uint8 Label::getAlpha()
+{
+	return m_alpha;
 }
 
 void Label::setSize(const int new_size)

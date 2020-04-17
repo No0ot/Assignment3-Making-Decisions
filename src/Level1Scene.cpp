@@ -3,7 +3,10 @@
 #include "ExplosionManager.h"
 #include "Util.h"
 
-Level1Scene::Level1Scene() : m_iCurrentPts(0), m_iTotalPts(100), m_PtsBar(10, 10, m_iCurrentPts, m_iTotalPts, 2.0f, { 192, 192, 255, 192 })
+Level1Scene::Level1Scene() :
+	m_iCurrentPts(0), m_iTotalPts(100), m_PtsBar(10, 10, m_iCurrentPts, m_iTotalPts, 2.0f, { 192, 192, 255, 192 }),
+	m_iRespawnFrame(100), m_iRespawnFrameMax(100), m_RespawnBar(300, 300, m_iRespawnFrame, m_iRespawnFrameMax, 2.0f, { 255, 128, 128, 192 }),
+	m_iScreenMsgFrame(0), m_iScreenMsgFrameMax(100)
 {
 	Level1Scene::start();
 	TheSoundManager::Instance()->load("../Assets/audio/EnemyHit.wav", "EnemyHit", sound_type::SOUND_SFX);
@@ -29,11 +32,31 @@ Level1Scene::~Level1Scene()
 void Level1Scene::draw()
 {
 	drawDisplayList();
+	m_ScreenMsg->draw();
+
+	if (m_iRespawnFrame < m_iRespawnFrameMax)
+	{
+		m_RespawnBar.draw();
+	}
+
 	m_PtsBar.draw();
 }
 
 void Level1Scene::update()
 {
+	if (m_iScreenMsgFrame >= m_iScreenMsgFrameMax)
+	{
+		Uint8 alpha = m_ScreenMsg->getAlpha();
+		if (alpha > 0)
+		{
+			m_ScreenMsg->setAlpha(alpha - 1);
+		}
+	}
+	else
+	{
+		m_iScreenMsgFrame++;
+	}
+
 	updateDisplayList();
 	m_pPlayer->update();
 	for (unsigned int j = 0; j < m_pEnemyVec.size(); j++)
@@ -44,21 +67,29 @@ void Level1Scene::update()
 	m_checkCollisions();
 
 	m_PtsBar.update();
+	m_RespawnBar.update();
 
 	if (m_pEnemyVec.size() == 0)
 	{
-		int temp = rand() % 2;
-		if (temp == 0)
+		if (m_iRespawnFrame >= m_iRespawnFrameMax)
 		{
-			m_pEnemyVec.push_back(new Ranged_Enemy());
-			addChild(m_pEnemyVec.back());
-			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+			int temp = rand() % 2;
+			if (temp == 0)
+			{
+				m_pEnemyVec.push_back(new Ranged_Enemy(m_RangedLoadouts[rand() % 3]));
+				addChild(m_pEnemyVec.back());
+				m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+			}
+			else if (temp == 1)
+			{
+				m_pEnemyVec.push_back(new Melee_Enemy(m_MeleeLoadouts[rand() % 3]));
+				addChild(m_pEnemyVec.back());
+				m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+			}
 		}
-		else if (temp == 1)
+		else
 		{
-			m_pEnemyVec.push_back(new Melee_Enemy());
-			addChild(m_pEnemyVec.back());
-			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
+			m_iRespawnFrame++;
 		}
 	}
 }
@@ -215,6 +246,19 @@ void Level1Scene::handleEvents()
 
 void Level1Scene::start()
 {
+	m_MeleeLoadouts[0] = Melee_Enemy::Loadout({ 255, 255, 255, 255 }, 1.2f, 50, -10, 100.0f, 40.0f, 10);
+	m_MeleeLoadouts[1] = Melee_Enemy::Loadout({ 128, 128, 255, 255 }, 1.4f, 75, -15, 100.0f, 40.0f, 20);
+	m_MeleeLoadouts[2] = Melee_Enemy::Loadout({ 128, 255, 128, 255 }, 1.0f, 40, -15, 100.0f, 80.0f, 10);
+	m_MeleeLoadouts[3] = Melee_Enemy::Loadout({ 255, 128, 128, 255 }, 1.6f, 60, -15, 200.0f, 60.0f, 25);
+	m_RangedLoadouts[0] = Ranged_Enemy::Loadout({ 255, 255, 255, 255 }, 2.0, 80, -10, 100.0f, 40.0f, 20);
+	m_RangedLoadouts[1] = Ranged_Enemy::Loadout({ 128, 128, 255, 255 }, 2.3, 100, -15, 150.0f, 40.0f, 30);
+	m_RangedLoadouts[2] = Ranged_Enemy::Loadout({ 128, 255, 128, 255 }, 1.7, 50, -10, 100.0f, 80.0f, 15);
+	m_RangedLoadouts[3] = Ranged_Enemy::Loadout({ 255, 128, 128, 255 }, 2.6, 90, -30, 100.0f, 30.0f, 40);
+
+	m_ScreenMsg = new Label("GAME START!", "Consolas", 30, { 192, 192, 255, 255 }, glm::vec2(400.0f, 250.0f));
+	m_ScreenMsg->setParent(this);
+	addChild(m_ScreenMsg);
+
 	m_buildGrid();
 	m_mapTiles();
 	for (int i = 0; i < 10; i++)
@@ -229,13 +273,13 @@ void Level1Scene::start()
 		int temp = rand() % 2;
 		if (temp == 0)
 		{
-			m_pEnemyVec.push_back(new Ranged_Enemy());
+			m_pEnemyVec.push_back(new Ranged_Enemy(m_RangedLoadouts[rand() % 3]));
 			addChild(m_pEnemyVec.back());
 			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
 		}
 		else if (temp == 1)
 		{
-			m_pEnemyVec.push_back(new Melee_Enemy());
+			m_pEnemyVec.push_back(new Melee_Enemy(m_MeleeLoadouts[rand() % 3]));
 			addChild(m_pEnemyVec.back());
 			m_pEnemyVec.back()->DisplayListIndexInScene = numberOfChildren() - 1;
 		}
@@ -540,7 +584,10 @@ void Level1Scene::m_checkCollisions()
 			{
 				if (m_pPlayer->changeHealth(m_pEnemyVec[enemy]->getDamage()))
 				{
-
+					m_iCurrentPts = 0;
+					m_ScreenMsg->setText("You died! Score reset to 0.");
+					m_iScreenMsgFrame = 0;
+					m_ScreenMsg->setAlpha(255);
 				}
 			}
 			if (CollisionManager::circleAABBCheck(m_pEnemyVec[enemy], m_pPlayer->getCollider()))
@@ -555,8 +602,24 @@ void Level1Scene::m_checkCollisions()
 				if (m_pEnemyVec[enemy]->changeHealth(-m_pPlayer->m_iMeleeDamage))
 				{
 					TheSoundManager::Instance()->playSound("EnemyDie", 0);
+					m_iRespawnFrame = 0;
+					int ptsVal = m_pEnemyVec[enemy]->getPtsValue();
+					m_iCurrentPts += ptsVal;
+					
+					if (m_iCurrentPts < m_iTotalPts)
+					{
+						m_ScreenMsg->setText("Enemy killed +" + std::to_string(ptsVal) + " points!");
+					}
+					else
+					{
+						m_iTotalPts = static_cast<int>(m_iTotalPts * 2);
+						m_iCurrentPts = 0;
+						m_ScreenMsg->setText("Congratulations! Target score reached! New target: " + std::to_string(m_iTotalPts) + '!');
+					}
+					m_iScreenMsgFrame = 0;
+					m_ScreenMsg->setAlpha(255);
+
 					removeChildByIndex(m_pEnemyVec[enemy]->DisplayListIndexInScene);
-					m_iCurrentPts += m_pEnemyVec[enemy]->getPtsValue();
 					delete m_pEnemyVec[enemy];
 					m_pEnemyVec[enemy] = nullptr;
 					m_pEnemyVec.erase(m_pEnemyVec.begin() + enemy);
@@ -589,8 +652,24 @@ void Level1Scene::m_checkCollisions()
 								if (m_pEnemyVec[enemy]->changeHealth(-m_pPlayer->getBullets()[j]->getDamage()))
 								{
 									TheSoundManager::Instance()->playSound("EnemyDie", 0);
+									m_iRespawnFrame = 0;
+									int ptsVal = m_pEnemyVec[enemy]->getPtsValue();
+									m_iCurrentPts += ptsVal;
+
+									if (m_iCurrentPts < m_iTotalPts)
+									{
+										m_ScreenMsg->setText("Enemy killed +" + std::to_string(ptsVal) + " points!");
+									}
+									else
+									{
+										m_iTotalPts = static_cast<int>(m_iTotalPts * 2);
+										m_iCurrentPts = 0;
+										m_ScreenMsg->setText("Congratulations! Target score reached! New target: " + std::to_string(m_iTotalPts) + '!');
+									}
+									m_iScreenMsgFrame = 0;
+									m_ScreenMsg->setAlpha(255);
+
 									removeChildByIndex(m_pEnemyVec[enemy]->DisplayListIndexInScene);
-									m_iCurrentPts += m_pEnemyVec[enemy]->getPtsValue();
 									delete m_pEnemyVec[enemy];
 									m_pEnemyVec[enemy] = nullptr;
 									m_pEnemyVec.erase(m_pEnemyVec.begin() + enemy);
