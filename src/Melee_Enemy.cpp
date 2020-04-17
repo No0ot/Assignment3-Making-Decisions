@@ -2,13 +2,13 @@
 #include "TextureManager.h"
 #include "Game.h"
 
-Melee_Enemy::Melee_Enemy()
+Melee_Enemy::Melee_Enemy(Melee_Enemy::Loadout& loadout)
 {
 	
-	m_iTotalHealth = 50;
-	m_iCurrentHealth = 50;
+	m_iTotalHealth = loadout.health;
+	m_iCurrentHealth = loadout.health;
 	m_HealthBar = new HealthBar(*this, m_iCurrentHealth, m_iTotalHealth, 0.5f, { 255, 0, 0, 192 });
-	m_fScaleFactor = 1.2f;
+	m_fScaleFactor = loadout.scale;
 	canCower = true;
 
 	TheTextureManager::Instance()->loadSpriteSheet("../Assets/sprites/wolf.txt",
@@ -17,11 +17,12 @@ Melee_Enemy::Melee_Enemy()
 	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("wolfspritesheet");
 	m_meleeCollisionBox = new Collider;
 	m_buildAnimations();
+	m_tint = loadout.colour;
 	// set frame width
-	setWidth(40);
+	setWidth(static_cast<int>(30.0f * loadout.scale));
 	setAnimState(WOLF_IDLE);
 	// set frame height
-	setHeight(40);
+	setHeight(static_cast<int>(30.0f * loadout.scale));
 	setPosition(glm::vec2(0.0f, 0.0f));
 	setVelocity(glm::vec2(0.0f, 0.0f));
 	setIsColliding(false);
@@ -51,11 +52,11 @@ Melee_Enemy::Melee_Enemy()
 	m_numFramesAvoiding = 0;
 	m_maxFramesAvoiding = 30;
 
-	m_smellRadius = 100.0f;
-	m_fFOV = 40;
+	m_smellRadius = loadout.smell;
+	m_fFOV = loadout.FOV;
 
-	m_iDamage = -10;
-	m_iPtsValue = 25;
+	m_iDamage = loadout.damage;
+	m_iPtsValue = loadout.value;
 }
 
 void Melee_Enemy::draw()
@@ -68,23 +69,23 @@ void Melee_Enemy::draw()
 	case WOLF_IDLE:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["idle"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.2f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading, m_tint, true);
 
 		break;
 	case WOLF_WALK:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["walk"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["run"].m_currentFrame, 0.25f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading, m_tint, true);
 		break;
 	case WOLF_RUN:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["run"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["run"].m_currentFrame, 0.2f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading, m_tint, true);
 		break;
 	case WOLF_BITE:
 		TheTextureManager::Instance()->playAnimation("wolfspritesheet", m_pAnimations["bite"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["bite"].m_currentFrame, 0.12f,
-			TheGame::Instance()->getRenderer(), m_currentHeading, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading, m_tint, true);
 		break;
 	}
 

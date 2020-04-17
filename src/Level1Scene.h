@@ -51,6 +51,17 @@ private:
 	int m_iTotalPts;
 	int m_iCurrentPts;
 	UIBar m_PtsBar;
+
+	int m_iRespawnFrame;
+	int m_iRespawnFrameMax;
+	UIBar m_RespawnBar;
+	
+	int m_iScreenMsgFrame;
+	int m_iScreenMsgFrameMax;
+	Label* m_ScreenMsg{};
+	
+	Melee_Enemy::Loadout m_MeleeLoadouts[4];
+	Ranged_Enemy::Loadout m_RangedLoadouts[4];
 };
 
 #endif /* defined (__LEVEL1_SCENE__) */

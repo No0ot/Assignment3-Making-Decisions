@@ -2,14 +2,14 @@
 #include "TextureManager.h"
 #include "Game.h"
 
-Ranged_Enemy::Ranged_Enemy()
+Ranged_Enemy::Ranged_Enemy(Ranged_Enemy::Loadout& loadout)
 {
 	canShoot = true;
 	playerDistance = 0;
-	m_iTotalHealth = 80;
-	m_iCurrentHealth = 80;
+	m_iTotalHealth = loadout.health;
+	m_iCurrentHealth = loadout.health;
 	m_HealthBar = new HealthBar(*this, m_iCurrentHealth, m_iTotalHealth, 0.5f, { 255, 0, 0, 192 });
-	m_fScaleFactor = 2.0f;
+	m_fScaleFactor = loadout.scale;
 	for (int i = 0; i < 3; i++)
 		quarterHealth[i] = true;
 
@@ -18,15 +18,16 @@ Ranged_Enemy::Ranged_Enemy()
 
 	m_pSpriteSheet = TheTextureManager::Instance()->getSpriteSheet("mech");
 	m_buildAnimations();
+	m_tint = loadout.colour;
 	m_meleeCollisionBox = new Collider;
 	m_meleeCollisionBox->setPosition(glm::vec2{ 500,1000 });
 	m_meleeCollisionBox->setHeight(50);
 	m_meleeCollisionBox->setWidth(50);
 	// set frame width
-	setWidth(40);
+	setWidth(static_cast<int>(20.0f * loadout.scale));
 	setAnimState(WOLF_IDLE);
 	// set frame height
-	setHeight(40);
+	setHeight(static_cast<int>(20.0f * loadout.scale));
 	setPosition(glm::vec2(0.0f, 0.0f));
 	setVelocity(glm::vec2(0.0f, 0.0f));
 	setIsColliding(false);
@@ -53,11 +54,11 @@ Ranged_Enemy::Ranged_Enemy()
 	m_avoidEndFrameMax = 10;
 	m_numFramesAvoiding = 0;
 
-	m_smellRadius = 100.0f;
-	m_fFOV = 40;
+	m_smellRadius = loadout.smell;
+	m_fFOV = loadout.FOV;
 
-	m_iDamage = -10;
-	m_iPtsValue = 50;
+	m_iDamage = loadout.damage;
+	m_iPtsValue = loadout.value;
 
 	bulletspawnPos = glm::vec2(getPosition().x + 24, getPosition().y + 16);
 	directionvector = { bulletspawnPos.x - getPosition().x, bulletspawnPos.y - getPosition().y };
@@ -74,22 +75,22 @@ void Ranged_Enemy::draw()
 	case WOLF_IDLE:
 		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["idle"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["idle"].m_currentFrame, 0.5f,
-			TheGame::Instance()->getRenderer(), m_currentHeading + 180, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading + 180, m_tint, true);
 		break;
 	case WOLF_WALK:
 		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["walk"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["walk"].m_currentFrame, 0.25f,
-			TheGame::Instance()->getRenderer(), m_currentHeading + 180, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading + 180, m_tint, true);
 		break;
 	case WOLF_RUN:
 		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["walk"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["walk"].m_currentFrame, 0.25f,
-			TheGame::Instance()->getRenderer(), m_currentHeading + 180, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading + 180, m_tint, true);
 		break;
 	case WOLF_BITE:
 		TheTextureManager::Instance()->playAnimation("mech", m_pAnimations["shoot"],
 			getPosition().x, getPosition().y, m_fScaleFactor, m_pAnimations["shoot"].m_currentFrame, 0.5f,
-			TheGame::Instance()->getRenderer(), m_currentHeading + 180, 255, true);
+			TheGame::Instance()->getRenderer(), m_currentHeading + 180, m_tint, true);
 		break;
 	}
 
@@ -267,8 +268,8 @@ void Ranged_Enemy::update()
 			m_pBulletvec.erase(m_pBulletvec.begin() + i);
 		}
 	}
-	std::cout << "STEERINGSTATE: " << getState() << std::endl;
-	std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
-	std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
+	//std::cout << "STEERINGSTATE: " << getState() << std::endl;
+	//std::cout << "BEHAVIOURSTATE: " << (int)getBehaviour() << std::endl;
+	//std::cout << "TARGETPOSITION: " << getTargetPosition().x << " " << getTargetPosition().y << std::endl;
 
 }
